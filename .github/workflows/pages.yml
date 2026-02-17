@@ -20,6 +20,6 @@ jobs:
       - name: Deploy docs to GitHub Pages
         uses: nicnocquee/speed-docs-github-action@v1
         with:
-          content-path: "./docs"
+          content-path: "./docs-sdui"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           base-path: ${{ steps.setup_pages.outputs.base_path }} # You need to add this step if you are NOT using custom domain
