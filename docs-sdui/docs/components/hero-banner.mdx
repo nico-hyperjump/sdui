@@ -1,0 +1,44 @@
+---
+title: Hero Banner
+description: Large image with title/subtitle overlay
+---
+
+# Hero Banner
+
+Large promotional banner component that displays an image with an overlaid title and subtitle. Use Hero Banner for prominent promotional headers, featured content, or marketing sections.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `title` | `string` | — | Main title text displayed over the image |
+| `subtitle` | `string` | — | Subtitle text displayed below the title |
+| `imageUri` | `string` | — | Image URL for the banner background |
+| `image` | `string` | — | Alternative prop name for imageUri |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "hero-1",
+      "type": "hero_banner",
+      "props": {
+        "title": "Welcome to Our App",
+        "subtitle": "Discover amazing features",
+        "imageUri": "https://example.com/hero-image.jpg"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Hero Banner displays a large background image with overlaid text
+- Use for promotional headers and featured content sections
+- Supports both `imageUri` and `image` props for the background image
+- Title and subtitle are displayed as overlay text on the image

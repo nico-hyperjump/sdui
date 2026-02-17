@@ -1,0 +1,144 @@
+---
+title: Architecture
+description: Package structure, layers, and dependency graph of the SDUI platform
+icon: Layers
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+
+The SDUI Platform is organized as a **pnpm monorepo** with clearly separated packages following a layered architecture. Each package has a single responsibility and communicates through well-defined TypeScript interfaces.
+
+## High-Level Architecture
+
+<Mermaid chart="flowchart TB; subgraph clients [Client Layer]; Mobile[Mobile App - Expo + React Native]; CMS[CMS Admin Panel - React + Vite]; end; subgraph server [Server Layer]; Host[Hono Host Server]; PublicAPI[Public SDUI Service]; CMSAPI[CMS Service]; end; subgraph data [Data Layer]; DB[(SQLite Database - Prisma)]; Cache[In-Memory Cache]; end; subgraph shared [Shared Layer]; Schema[SDUI Schema - Zod types]; DBPkg[SDUI Database - Prisma client]; SDKPkg[SDUI SDK - RN hooks + renderer]; end; Mobile -->|API key auth| Host; CMS -->|JWT auth| Host; Host --> PublicAPI; Host --> CMSAPI; PublicAPI --> DBPkg; PublicAPI --> Cache; CMSAPI --> DBPkg; DBPkg --> DB; Mobile --> SDKPkg; SDKPkg --> Schema; PublicAPI --> Schema; CMSAPI --> Schema" />
+
+## Package Map
+
+The monorepo contains **8 SDUI-related projects** split across `packages/` and `apps/`:
+
+| Package                       | Path                        | Description                                        |
+| ----------------------------- | --------------------------- | -------------------------------------------------- |
+| `@workspace/sdui-schema`      | `packages/sdui-schema`      | Shared TypeScript types and Zod validation schemas |
+| `@workspace/sdui-database`    | `packages/sdui-database`    | Prisma + SQLite data layer                         |
+| `@workspace/sdui-service`     | `packages/sdui-service`     | Public API for mobile SDK (API key auth)           |
+| `@workspace/sdui-cms-service` | `packages/sdui-cms-service` | Admin API for CMS (JWT auth)                       |
+| `@workspace/sdui-sdk`         | `packages/sdui-sdk`         | React Native UI SDK (client, renderer, hooks)      |
+| `@workspace/cms`              | `packages/cms`              | React + Vite admin panel                           |
+| `@workspace/server`           | `apps/server`               | Hono host server mounting both APIs                |
+| `@workspace/mobile`           | `apps/mobile`               | Expo React Native app (3 brand variants)           |
+
+## Repository Structure
+
+<Files>
+  <Folder name="packages" defaultOpen>
+    <Folder name="sdui-schema" defaultOpen>
+      <Folder name="src">
+        <File name="ui-schema.ts" />
+        <File name="api-contracts.ts" />
+        <File name="brand-config.ts" />
+        <File name="feature-flags.ts" />
+        <File name="analytics.ts" />
+        <File name="ab-test.ts" />
+      </Folder>
+    </Folder>
+    <Folder name="sdui-database">
+      <Folder name="prisma">
+        <File name="schema.prisma" />
+      </Folder>
+      <Folder name="src">
+        <File name="client.ts" />
+        <File name="seed.ts" />
+      </Folder>
+    </Folder>
+    <Folder name="sdui-service">
+      <Folder name="src">
+        <File name="index.ts" />
+        <File name="routes/" />
+        <File name="services/" />
+        <File name="middleware/" />
+      </Folder>
+    </Folder>
+    <Folder name="sdui-cms-service">
+      <Folder name="src">
+        <File name="index.ts" />
+        <File name="routes/" />
+        <File name="middleware/" />
+      </Folder>
+    </Folder>
+    <Folder name="sdui-sdk">
+      <Folder name="src">
+        <File name="client.ts" />
+        <File name="renderer.tsx" />
+        <File name="component-registry.ts" />
+        <File name="hooks/" />
+        <File name="providers/" />
+      </Folder>
+    </Folder>
+    <Folder name="cms">
+      <Folder name="src">
+        <File name="pages/" />
+        <File name="components/" />
+        <File name="api-client.ts" />
+      </Folder>
+    </Folder>
+  </Folder>
+  <Folder name="apps" defaultOpen>
+    <Folder name="server">
+      <Folder name="src">
+        <File name="index.ts" />
+      </Folder>
+    </Folder>
+    <Folder name="mobile">
+      <Folder name="app">
+        <File name="_layout.tsx" />
+        <File name="(tabs)/" />
+      </Folder>
+      <Folder name="components">
+        <File name="sdui/" />
+      </Folder>
+      <Folder name="constants">
+        <File name="brands.ts" />
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
+
+## Dependency Graph
+
+The packages form a clean dependency tree with `sdui-schema` at the foundation:
+
+<Mermaid chart="flowchart BT; Schema[sdui-schema]; DB[sdui-database]; Service[sdui-service]; CMSService[sdui-cms-service]; SDK[sdui-sdk]; CMSApp[cms]; Server[apps/server]; MobileApp[apps/mobile]; DB --> Schema; Service --> Schema; Service --> DB; CMSService --> Schema; CMSService --> DB; SDK --> Schema; CMSApp --> Schema; Server --> Service; Server --> CMSService; Server --> DB; MobileApp --> SDK; MobileApp --> Schema" />
+
+### Dependency Rules
+
+1. **`sdui-schema`** has zero internal dependencies — it is the shared contract
+2. **`sdui-database`** depends only on `sdui-schema` for type alignment
+3. **Service packages** (`sdui-service`, `sdui-cms-service`) depend on both `sdui-schema` and `sdui-database`
+4. **`sdui-sdk`** depends only on `sdui-schema` (no server packages) — it communicates over HTTP
+5. **App packages** (`server`, `mobile`, `cms`) compose the library packages
+
+## Layer Responsibilities
+
+### Shared Layer
+
+- **sdui-schema** — Single source of truth for all TypeScript types and Zod validation. Defines component types, API request/response contracts, brand config shape, feature flag structure, and analytics events.
+- **sdui-database** — Prisma client configured for SQLite with Better SQLite3 adapter. Provides the database client, migrations, and seed scripts.
+
+### Server Layer
+
+- **sdui-service** — Public-facing API consumed by the mobile SDK. Handles screen resolution (with segment fallback and A/B test variant assignment), brand config delivery, content offers, and analytics event ingestion. Protected by API key authentication.
+- **sdui-cms-service** — Admin-facing API consumed by the CMS panel. Handles CRUD for screens, feature flags, themes, A/B tests, API keys, and analytics summaries. Protected by JWT authentication.
+- **apps/server** — Thin Hono host that mounts both services under `/api/v1/*` and `/api/cms/*`, adds CORS and logging middleware, and serves the health check endpoint.
+
+### Client Layer
+
+- **sdui-sdk** — React Native library providing the `SduiProvider`, `SduiRenderer`, hooks (`useSduiScreen`, `useTheme`, `useAnalytics`), and a component registry pattern. The SDK fetches UI schemas from the server and renders them using registered React Native components.
+- **packages/cms** — React SPA with React Router, Tailwind CSS, and a typed API client. Provides pages for managing screens, feature flags, themes, A/B tests, analytics, and API keys.
+- **apps/mobile** — Expo app that uses the SDK with a custom component registry implementing all 18 SDUI component types in React Native. Supports brand variants via environment configuration.
+
+<Callout type="info">
+  The architecture is designed so that the mobile app has **zero knowledge** of
+  the server's internals. It communicates exclusively through the SDK, which in
+  turn uses the public API defined by the shared schema contracts.
+</Callout>

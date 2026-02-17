@@ -1,0 +1,63 @@
+---
+title: Rating
+description: Star rating component
+---
+
+# Rating
+
+Star rating component that displays a visual rating using filled and unfilled stars. Use Rating to show product ratings, reviews, or any star-based scoring system.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `value` | `number` | — | Current rating value |
+| `maxStars` | `number` | `5` | Maximum number of stars |
+| `size` | `number` | `20` | Star size in pixels |
+| `interactive` | `boolean` | `false` | Enable interactive mode for user rating |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "rating-1",
+      "type": "rating",
+      "props": {
+        "value": 4.5,
+        "maxStars": 5,
+        "size": 24
+      }
+    },
+    {
+      "id": "rating-2",
+      "type": "rating",
+      "props": {
+        "value": 3,
+        "maxStars": 5,
+        "size": 20,
+        "interactive": true
+      }
+    },
+    {
+      "id": "rating-3",
+      "type": "rating",
+      "props": {
+        "value": 5,
+        "maxStars": 5
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Rating displays filled and unfilled stars based on the value
+- Default maximum is 5 stars but can be customized
+- Interactive mode wraps each star in a touchable for user input
+- Use for product ratings, reviews, and star-based scoring
+- Value can be a decimal (e.g., 4.5) for half-star displays

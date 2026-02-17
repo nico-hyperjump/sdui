@@ -1,0 +1,48 @@
+---
+title: Row
+description: Horizontal list with spacing
+---
+
+# Row
+
+Container component that renders children horizontally with consistent spacing between them. Use Row when you need to arrange components side by side.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `gap` | `number` | `8` | Spacing between child components in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "row",
+  "props": {
+    "gap": 12
+  },
+  "children": [
+    {
+      "id": "button-1",
+      "type": "button",
+      "props": {
+        "label": "Cancel"
+      }
+    },
+    {
+      "id": "button-2",
+      "type": "button",
+      "props": {
+        "label": "Confirm"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Row is the primary component for horizontal layouts
+- Gap applies spacing between all direct children
+- Children will wrap to the next line if they exceed the container width

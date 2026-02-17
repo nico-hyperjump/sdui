@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model UserAccount {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  name        String
+  phoneNumber String   @map("phone_number")
+  planName    String   @map("plan_name")
+  planType    String   @map("plan_type")
+  dataLimitGb Float    @map("data_limit_gb")
+  dataUsedGb  Float    @default(0) @map("data_used_gb")
+  balance     Float    @default(0)
+  currency    String   @default("IDR")
+  billDate    String?  @map("bill_date")
+  brand       String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([brand])
+  @@map("user_accounts")
+}

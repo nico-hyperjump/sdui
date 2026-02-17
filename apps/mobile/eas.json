@@ -1,0 +1,52 @@
+{
+  "cli": {
+    "version": ">= 12.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "BRAND": "brand_a"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "BRAND": "brand_a"
+      }
+    },
+    "production": {
+      "env": {
+        "BRAND": "brand_a"
+      }
+    },
+    "brand-a": {
+      "distribution": "store",
+      "env": {
+        "BRAND": "brand_a"
+      }
+    },
+    "brand-b": {
+      "distribution": "store",
+      "env": {
+        "BRAND": "brand_b"
+      }
+    },
+    "brand-c": {
+      "distribution": "store",
+      "env": {
+        "BRAND": "brand_c"
+      }
+    },
+    "brand-demo": {
+      "distribution": "internal",
+      "env": {
+        "BRAND": "brand_demo"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

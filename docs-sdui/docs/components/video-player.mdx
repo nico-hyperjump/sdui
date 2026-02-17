@@ -1,0 +1,61 @@
+---
+title: Video Player
+description: Inline video with play overlay
+---
+
+# Video Player
+
+Inline video player component that displays video content with a play overlay. Supports autoplay, muted playback, and custom aspect ratios. Placeholder implementation — in production replace with expo-av or similar.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `uri` | `string` | — | Video URL or source |
+| `src` | `string` | — | Alternative prop name for uri |
+| `poster` | `string` | — | Poster image URL shown before playback |
+| `autoPlay` | `boolean` | `false` | Whether to start playback automatically |
+| `muted` | `boolean` | `false` | Whether to play video muted |
+| `aspectRatio` | `number` | `16/9` | Aspect ratio of the video container |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "video-1",
+      "type": "video_player",
+      "props": {
+        "uri": "https://example.com/video.mp4",
+        "poster": "https://example.com/poster.jpg",
+        "autoPlay": false,
+        "muted": false,
+        "aspectRatio": 16/9
+      }
+    },
+    {
+      "id": "video-2",
+      "type": "video_player",
+      "props": {
+        "src": "https://example.com/trailer.mp4",
+        "poster": "https://example.com/thumbnail.jpg",
+        "autoPlay": true,
+        "muted": true,
+        "aspectRatio": 21/9
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Video Player displays inline video with a play overlay
+- Supports both `uri` and `src` props for the video source
+- Poster image is shown before playback starts
+- Default aspect ratio is 16:9 but can be customized
+- Placeholder implementation — in production replace with expo-av or similar video library
+- Autoplay and muted props control playback behavior

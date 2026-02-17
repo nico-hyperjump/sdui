@@ -1,0 +1,36 @@
+{
+  "name": "@workspace/mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start --clear",
+    "dev:a": "expo start --clear",
+    "dev:b": "BRAND=brand_b expo start --clear",
+    "dev:c": "BRAND=brand_c expo start --clear",
+    "dev:demo": "BRAND=brand_demo expo start --clear",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "eslint \"**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.28.0",
+    "expo": "~52.0.0",
+    "expo-constants": "~17.0.0",
+    "expo-router": "~4.0.0",
+    "expo-status-bar": "~2.0.0",
+    "expo-updates": "~0.27.0",
+    "react": "~18.3.1",
+    "react-native": "0.76.9",
+    "react-native-safe-area-context": "~5.0.0",
+    "react-native-screens": "~4.0.0",
+    "@expo/vector-icons": "^14",
+    "@workspace/sdui-components": "workspace:*",
+    "@workspace/sdui-sdk": "workspace:*",
+    "@workspace/sdui-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,56 @@
+---
+title: Tab Bar
+description: Horizontal tab selector
+---
+
+# Tab Bar
+
+Horizontal tab selector component that displays a row of tabs with an active tab highlighted by an accent underline. Renders children content below the tab strip, switching content based on the selected tab.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `tabs` | `array` | — | Array of tab objects with `label` property |
+| `selectedIndex` | `number` | `0` | Index of the currently selected tab |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "tab_bar",
+  "props": {
+    "tabs": [
+      { "label": "Home" },
+      { "label": "Products" },
+      { "label": "About" }
+    ],
+    "selectedIndex": 0
+  },
+  "children": [
+    {
+      "id": "content-1",
+      "type": "stack",
+      "children": [
+        {
+          "id": "text-1",
+          "type": "text",
+          "props": {
+            "content": "Home content"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Tab Bar displays a horizontal row of tabs
+- Active tab is highlighted with an accent underline
+- Children content is rendered below the tab strip
+- Default selected index is 0 (first tab)
+- Tabs array must contain objects with at least a `label` property
+- Content switches based on the selected tab index

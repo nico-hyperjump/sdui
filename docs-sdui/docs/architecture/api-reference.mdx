@@ -1,0 +1,1148 @@
+---
+title: API Reference
+description: Complete reference for the Public SDUI API and CMS Admin API endpoints
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+The SDUI Platform exposes two API surfaces from a single server:
+
+| API                 | Base Path  | Auth                                 | Consumer        |
+| ------------------- | ---------- | ------------------------------------ | --------------- |
+| **Public SDUI API** | `/api/v1`  | API Key (`X-API-Key` header)         | Mobile SDK      |
+| **CMS Admin API**   | `/api/cms` | JWT (`Authorization: Bearer` header) | CMS Admin Panel |
+
+---
+
+## Data Models
+
+These are the shared types referenced throughout the API. They are defined as Zod schemas in `packages/sdui-schema`.
+
+### SduiScreen
+
+The top-level response returned by the public screen endpoint.
+
+| Field           | Type                                | Required | Description                          |
+| --------------- | ----------------------------------- | -------- | ------------------------------------ |
+| `schemaVersion` | `string`                            | Yes      | Schema version (e.g. `"1.0"`)        |
+| `screenId`      | `string`                            | Yes      | Unique screen identifier             |
+| `brand`         | `string`                            | Yes      | Brand the screen belongs to          |
+| `updatedAt`     | `string`                            | Yes      | ISO 8601 timestamp of last update    |
+| `components`    | [`SduiComponent[]`](#sduicomponent) | Yes      | Ordered list of components to render |
+| `metadata`      | `Record<string, unknown>`           | No       | Arbitrary key-value metadata         |
+
+### SduiComponent
+
+A single UI component. Components are recursive — each can contain `children`.
+
+| Field        | Type                                              | Required | Description                                   |
+| ------------ | ------------------------------------------------- | -------- | --------------------------------------------- |
+| `id`         | `string`                                          | Yes      | Unique component identifier within the screen |
+| `type`       | [`SduiComponentType`](#sduicomponenttype)         | Yes      | The component type to render                  |
+| `props`      | `Record<string, unknown>`                         | No       | Arbitrary props passed to the native renderer |
+| `children`   | [`SduiComponent[]`](#sduicomponent)               | No       | Nested child components (recursive)           |
+| `action`     | [`SduiAction`](#sduiaction)                       | No       | Action triggered on user interaction          |
+| `analytics`  | [`SduiAnalyticsMetadata`](#sduianalyticsmetadata) | No       | Analytics tracking metadata                   |
+| `conditions` | [`SduiCondition[]`](#sduicondition)               | No       | Conditions controlling visibility             |
+
+### SduiComponentType
+
+Enum of all 53 supported component types, organized by category. See the [Components](/components) section for detailed documentation on each type.
+
+| Category          | Types                                                                                                                                        |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Layout**        | `stack`, `row`, `column`, `scroll_view`, `spacer`                                                                                            |
+| **Content**       | `text`, `image`, `icon`, `divider`                                                                                                           |
+| **Interactive**   | `button`, `card`, `link`                                                                                                                     |
+| **Composite**     | `hero_banner`, `action_card`, `product_card`, `list_item`, `action_grid`, `web_view`                                                         |
+| **Foundation**    | `carousel`, `section_header`, `chip`, `avatar`, `search_bar`, `progress_bar`, `rating`, `text_input`, `toggle`, `dropdown`                   |
+| **Engagement**    | `story_circle`, `video_player`, `countdown_timer`, `tab_bar`, `banner`, `empty_state`, `bottom_sheet`, `accordion`                           |
+| **Forms & Input** | `stepper`, `checkbox`, `radio_group`, `slider`, `date_picker`, `swipeable_row`, `floating_action_button`, `pull_to_refresh`                  |
+| **Specialized**   | `map_view`, `chart`, `lottie_animation`, `qr_code`, `media_gallery`, `step_indicator`, `comparison_table`, `skeleton_loader`, `social_proof` |
+
+### SduiComponentMap
+
+A TypeScript utility type exported from `@workspace/sdui-sdk` that enforces complete component coverage:
+
+```ts
+type SduiComponentMap = Record<
+  SduiComponentType,
+  ComponentType<SduiComponentProps>
+>;
+```
+
+Because this is a `Record` keyed by `SduiComponentType`, TypeScript produces a compile-time error if any component type is missing or misspelled. Use it with `ComponentRegistry.fromMap()` to create a fully populated registry:
+
+```ts
+import { ComponentRegistry } from "@workspace/sdui-sdk";
+import type { SduiComponentMap } from "@workspace/sdui-sdk";
+
+const map: SduiComponentMap = {
+  /* all 18 types required */
+};
+const registry = ComponentRegistry.fromMap(map);
+```
+
+The `@workspace/sdui-components` package exports a ready-to-use `mobileComponentMap` and `mobileRegistry` built this way.
+
+### SDUI_COMPONENT_TYPES
+
+A runtime constant exported from `@workspace/sdui-schema` containing all component type strings:
+
+```ts
+import { SDUI_COMPONENT_TYPES } from "@workspace/sdui-schema";
+// ["stack", "row", "column", ..., "web_view"]
+```
+
+Derived from `sduiComponentTypeSchema.options`, it stays in sync with the Zod schema automatically.
+
+### SduiAction
+
+A discriminated union on the `type` field. Defines what happens when a user taps a component.
+
+**`navigate`** — move to another screen:
+
+| Field    | Type                      | Required | Description                         |
+| -------- | ------------------------- | -------- | ----------------------------------- |
+| `type`   | `"navigate"`              | Yes      | Action type                         |
+| `screen` | `string`                  | Yes      | Target screen ID                    |
+| `params` | `Record<string, unknown>` | No       | Parameters to pass to target screen |
+
+**`webview`** — open a URL in a WebView or external browser:
+
+| Field   | Type        | Required | Description                     |
+| ------- | ----------- | -------- | ------------------------------- |
+| `type`  | `"webview"` | Yes      | Action type                     |
+| `url`   | `string`    | Yes      | URL to open (must be valid URL) |
+| `title` | `string`    | No       | Title for the WebView bar       |
+
+**`custom`** — application-defined action:
+
+| Field     | Type                      | Required | Description              |
+| --------- | ------------------------- | -------- | ------------------------ |
+| `type`    | `"custom"`                | Yes      | Action type              |
+| `name`    | `string`                  | Yes      | Custom action identifier |
+| `payload` | `Record<string, unknown>` | No       | Arbitrary payload        |
+
+### SduiAnalyticsMetadata
+
+Analytics tracking metadata attached to a component.
+
+| Field        | Type     | Required | Description                               |
+| ------------ | -------- | -------- | ----------------------------------------- |
+| `impression` | `string` | No       | Event name fired when component is seen   |
+| `click`      | `string` | No       | Event name fired when component is tapped |
+
+### SduiCondition
+
+A condition that determines whether a component is rendered. The client evaluates these against local context (user data, feature flags, etc.).
+
+| Field      | Type                                                          | Required | Description               |
+| ---------- | ------------------------------------------------------------- | -------- | ------------------------- |
+| `field`    | `string`                                                      | Yes      | Context field to evaluate |
+| `operator` | `"eq"` \| `"neq"` \| `"in"` \| `"not_in"` \| `"gt"` \| `"lt"` | Yes      | Comparison operator       |
+| `value`    | `unknown`                                                     | Yes      | Value to compare against  |
+
+### BrandConfig
+
+Full brand configuration returned by the `/config/:brand` endpoint.
+
+| Field          | Type                                      | Required | Description                            |
+| -------------- | ----------------------------------------- | -------- | -------------------------------------- |
+| `brandId`      | `"brand_a"` \| `"brand_b"` \| `"brand_c"` | Yes      | Brand identifier                       |
+| `name`         | `string`                                  | Yes      | Display name for the brand             |
+| `theme`        | [`BrandTheme`](#brandtheme)               | Yes      | Complete theme configuration           |
+| `featureFlags` | `Record<string, boolean>`                 | Yes      | Evaluated feature flags for this brand |
+
+### BrandTheme
+
+A complete brand theme (colors, typography, assets).
+
+| Field        | Type                                  | Required | Description         |
+| ------------ | ------------------------------------- | -------- | ------------------- |
+| `colors`     | [`ThemeColors`](#themecolors)         | Yes      | Brand color palette |
+| `typography` | [`ThemeTypography`](#themetypography) | Yes      | Typography settings |
+| `assets`     | [`ThemeAssets`](#themeassets)         | Yes      | Visual assets       |
+
+**ThemeColors:**
+
+| Field        | Type     | Description         |
+| ------------ | -------- | ------------------- |
+| `primary`    | `string` | Primary brand color |
+| `secondary`  | `string` | Secondary color     |
+| `accent`     | `string` | Accent color        |
+| `background` | `string` | Background color    |
+| `text`       | `string` | Default text color  |
+
+**ThemeTypography:**
+
+| Field           | Type     | Description               |
+| --------------- | -------- | ------------------------- |
+| `fontFamily`    | `string` | Font family name          |
+| `headingWeight` | `string` | Font weight for headings  |
+| `bodyWeight`    | `string` | Font weight for body text |
+
+**ThemeAssets:**
+
+| Field     | Type     | Required | Description  |
+| --------- | -------- | -------- | ------------ |
+| `logo`    | `string` | Yes      | Logo URL     |
+| `appIcon` | `string` | No       | App icon URL |
+
+### ScreenRecord
+
+A screen record as stored/returned by the CMS API (differs from the public `SduiScreen` response).
+
+| Field        | Type             | Description                                   |
+| ------------ | ---------------- | --------------------------------------------- |
+| `id`         | `string`         | Database record ID                            |
+| `screenId`   | `string`         | Logical screen identifier (e.g. `"home"`)     |
+| `brand`      | `string`         | Brand the screen belongs to                   |
+| `segment`    | `string \| null` | User segment, or `null` for default screen    |
+| `components` | `string`         | JSON-encoded array of `SduiComponent` objects |
+| `version`    | `integer`        | Auto-incrementing version number              |
+| `published`  | `boolean`        | Whether the screen is live                    |
+| `createdAt`  | `string`         | ISO 8601 creation timestamp                   |
+| `updatedAt`  | `string`         | ISO 8601 last-update timestamp                |
+
+### FeatureFlag
+
+A feature flag controlling functionality per brand with optional percentage rollout.
+
+| Field               | Type      | Description                      |
+| ------------------- | --------- | -------------------------------- |
+| `id`                | `string`  | Database record ID               |
+| `key`               | `string`  | Flag key (e.g. `"esim_support"`) |
+| `description`       | `string`  | Human-readable description       |
+| `brandA`            | `boolean` | Enabled for Brand A              |
+| `brandB`            | `boolean` | Enabled for Brand B              |
+| `brandC`            | `boolean` | Enabled for Brand C              |
+| `rolloutPercentage` | `integer` | Rollout percentage (`0`–`100`)   |
+
+### AbTest
+
+A complete A/B test configuration with its variants.
+
+| Field       | Type                                | Description                 |
+| ----------- | ----------------------------------- | --------------------------- |
+| `id`        | `string`                            | Database record ID          |
+| `name`      | `string`                            | Human-readable test name    |
+| `screenId`  | `string`                            | Screen this test applies to |
+| `brand`     | `string`                            | Brand this test applies to  |
+| `active`    | `boolean`                           | Whether the test is running |
+| `createdAt` | `string`                            | ISO 8601 creation timestamp |
+| `variants`  | [`AbTestVariant[]`](#abtestvariant) | List of test variants       |
+
+### AbTestVariant
+
+A single variant within an A/B test.
+
+| Field        | Type                                | Description                           |
+| ------------ | ----------------------------------- | ------------------------------------- |
+| `id`         | `string`                            | Variant ID                            |
+| `testId`     | `string`                            | Parent test ID                        |
+| `name`       | `string`                            | Variant display name                  |
+| `percentage` | `integer`                           | Traffic percentage (`0`–`100`)        |
+| `components` | [`SduiComponent[]`](#sduicomponent) | Components to render for this variant |
+
+### ApiKeyRecord
+
+A stored API key (with the key itself masked).
+
+| Field        | Type             | Description                               |
+| ------------ | ---------------- | ----------------------------------------- |
+| `id`         | `string`         | Database record ID                        |
+| `label`      | `string`         | Human-readable label                      |
+| `keyPreview` | `string`         | Masked key preview (e.g. `"sk_****abc1"`) |
+| `brand`      | `string \| null` | Brand scope, or `null` for all brands     |
+| `active`     | `boolean`        | Whether the key is active                 |
+| `createdAt`  | `string`         | ISO 8601 creation timestamp               |
+
+### AnalyticsEvent
+
+A persisted analytics event.
+
+| Field       | Type                      | Required | Description                      |
+| ----------- | ------------------------- | -------- | -------------------------------- |
+| `id`        | `string`                  | Yes      | Server-assigned event ID         |
+| `eventType` | `string`                  | Yes      | One of the supported event types |
+| `brand`     | `string`                  | Yes      | Brand identifier                 |
+| `userId`    | `string`                  | No       | User who triggered the event     |
+| `screenId`  | `string`                  | No       | Screen where event occurred      |
+| `payload`   | `Record<string, unknown>` | No       | Additional event data            |
+| `createdAt` | `string`                  | Yes      | ISO 8601 timestamp               |
+
+---
+
+## Health Check
+
+```
+GET /health
+```
+
+Returns server health status. No authentication required.
+
+**Response:**
+
+```json
+{ "status": "ok" }
+```
+
+---
+
+## Public SDUI API
+
+All endpoints require the `X-API-Key` header with a valid API key.
+
+### Get Screen
+
+```
+GET /api/v1/screens/:screenId
+```
+
+Resolves a screen with brand/segment personalization and A/B test variant assignment.
+
+**Query Parameters:**
+
+| Parameter      | Type   | Required | Description                                        |
+| -------------- | ------ | -------- | -------------------------------------------------- |
+| `brand`        | string | Yes      | Brand identifier (`brand_a`, `brand_b`, `brand_c`) |
+| `user_segment` | string | No       | User segment (`prepaid`, `postpaid`, `business`)   |
+| `user_id`      | string | No       | User ID for A/B test variant assignment            |
+
+**Response:** [`SduiScreen`](#sduiscreen)
+
+```json
+{
+  "schemaVersion": "1.0",
+  "screenId": "home",
+  "brand": "brand_a",
+  "updatedAt": "2026-02-12T10:30:00Z",
+  "components": [
+    {
+      "id": "hero_banner_1",
+      "type": "hero_banner",
+      "props": {
+        "image_url": "https://picsum.photos/800/400",
+        "title": "Welcome to Premium",
+        "subtitle": "Experience 5G Excellence",
+        "cta_text": "Explore Plans"
+      },
+      "action": {
+        "type": "navigate",
+        "screen": "plans"
+      },
+      "analytics": {
+        "impression": "hero_viewed",
+        "click": "hero_cta_clicked"
+      }
+    }
+  ]
+}
+```
+
+**Resolution Logic:**
+
+1. Query for `(screenId, brand, segment)` — exact match
+2. If not found, fallback to `(screenId, brand, null)` — default screen
+3. If an active A/B test exists for this screen + brand, assign variant deterministically
+4. Only published screens are returned
+
+**Error Responses:**
+
+| Status | Description                |
+| ------ | -------------------------- |
+| 401    | Missing or invalid API key |
+| 404    | Screen not found           |
+| 500    | Server error               |
+
+---
+
+### Get Brand Config
+
+```
+GET /api/v1/config/:brand
+```
+
+Returns the complete brand configuration including theme and evaluated feature flags.
+
+**Path Parameters:**
+
+| Parameter | Type   | Description                                        |
+| --------- | ------ | -------------------------------------------------- |
+| `brand`   | string | Brand identifier (`brand_a`, `brand_b`, `brand_c`) |
+
+**Query Parameters:**
+
+| Parameter | Type   | Required | Description                               |
+| --------- | ------ | -------- | ----------------------------------------- |
+| `user_id` | string | No       | User ID for rollout percentage evaluation |
+
+**Response:** [`BrandConfig`](#brandconfig)
+
+```json
+{
+  "brandId": "brand_a",
+  "name": "Premium",
+  "theme": {
+    "colors": {
+      "primary": "#003366",
+      "secondary": "#FFD700",
+      "accent": "#0066CC",
+      "background": "#FFFFFF",
+      "text": "#333333"
+    },
+    "typography": {
+      "fontFamily": "Inter",
+      "headingWeight": "700",
+      "bodyWeight": "400"
+    },
+    "assets": {
+      "logo": "https://via.placeholder.com/200x80/003366/FFD700?text=Premium"
+    }
+  },
+  "featureFlags": {
+    "esim_support": true,
+    "chat_support": false,
+    "biometric_login": true
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Description                |
+| ------ | -------------------------- |
+| 401    | Missing or invalid API key |
+| 404    | Brand not found            |
+
+---
+
+### Get Content Offers
+
+```
+GET /api/v1/content/offers
+```
+
+Returns personalized content offers based on brand and user segment.
+
+**Query Parameters:**
+
+| Parameter      | Type   | Required | Description                      |
+| -------------- | ------ | -------- | -------------------------------- |
+| `brand`        | string | Yes      | Brand identifier                 |
+| `user_segment` | string | No       | User segment for personalization |
+
+**Response:**
+
+```json
+{
+  "offers": [
+    {
+      "id": "offer_1",
+      "title": "5GB Data Bundle",
+      "description": "Get 5GB for just $10",
+      "price": "$10",
+      "image_url": "https://picsum.photos/400/200",
+      "action": {
+        "type": "navigate",
+        "screen": "offer_detail"
+      }
+    }
+  ]
+}
+```
+
+Each offer contains:
+
+| Field         | Type     | Required | Description                               |
+| ------------- | -------- | -------- | ----------------------------------------- |
+| `id`          | `string` | Yes      | Offer identifier                          |
+| `title`       | `string` | Yes      | Offer title                               |
+| `description` | `string` | Yes      | Offer description                         |
+| `price`       | `string` | Yes      | Display price                             |
+| `imageUrl`    | `string` | No       | Offer image URL                           |
+| `badge`       | `string` | No       | Badge text (e.g. `"NEW"`)                 |
+| `action`      | `object` | No       | Action on tap (`type`, `screen` or `url`) |
+
+<Callout type="info">
+  In the PoC, offers are hardcoded per segment. In production, this would
+  connect to a personalization engine or product catalog.
+</Callout>
+
+---
+
+### Track Analytics Event
+
+```
+POST /api/v1/analytics/event
+```
+
+Records a user interaction event.
+
+**Request Body:**
+
+| Field       | Type                      | Required | Description                      |
+| ----------- | ------------------------- | -------- | -------------------------------- |
+| `eventType` | `string`                  | Yes      | One of the supported event types |
+| `brand`     | `string`                  | Yes      | Brand identifier                 |
+| `userId`    | `string`                  | No       | User who triggered the event     |
+| `screenId`  | `string`                  | No       | Screen where event occurred      |
+| `payload`   | `Record<string, unknown>` | No       | Additional event data            |
+
+```json
+{
+  "eventType": "button_click",
+  "brand": "brand_a",
+  "userId": "user123",
+  "screenId": "home",
+  "payload": {
+    "component_id": "hero_cta",
+    "action": "navigate",
+    "target": "plans"
+  }
+}
+```
+
+**Supported Event Types:**
+
+| Type                  | Description                              |
+| --------------------- | ---------------------------------------- |
+| `screen_view`         | User viewed a screen                     |
+| `impression`          | Component became visible                 |
+| `button_click`        | User tapped a button or card             |
+| `ab_variant_assigned` | User was assigned to an A/B test variant |
+| `custom`              | Application-defined custom event         |
+
+**Response:**
+
+```json
+{ "success": true }
+```
+
+---
+
+## CMS Admin API
+
+All endpoints (except login) require the `Authorization: Bearer <token>` header with a valid JWT.
+
+### Authentication
+
+#### Login
+
+```
+POST /api/cms/auth/login
+```
+
+**Request Body:**
+
+```json
+{
+  "email": "admin@telco-poc.com",
+  "password": "admin123"
+}
+```
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": "1",
+    "email": "admin@telco-poc.com"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Description                                  |
+| ------ | -------------------------------------------- |
+| 400    | Invalid request body (Zod validation errors) |
+| 401    | Invalid email or password                    |
+
+#### Get Current Admin
+
+```
+GET /api/cms/auth/me
+```
+
+Returns the currently authenticated admin user.
+
+**Response:**
+
+```json
+{
+  "id": "1",
+  "email": "admin@telco-poc.com"
+}
+```
+
+---
+
+### Screens
+
+#### List Screens
+
+```
+GET /api/cms/screens
+```
+
+Returns all screens. Supports filtering by brand.
+
+**Query Parameters:**
+
+| Parameter | Type   | Required | Description     |
+| --------- | ------ | -------- | --------------- |
+| `brand`   | string | No       | Filter by brand |
+
+**Response:** [`ScreenRecord[]`](#screenrecord)
+
+```json
+[
+  {
+    "id": "1",
+    "screenId": "home",
+    "brand": "brand_a",
+    "segment": null,
+    "components": "[{\"id\":\"hero_1\",\"type\":\"hero_banner\",\"props\":{}}]",
+    "version": 3,
+    "published": true,
+    "createdAt": "2026-02-10T08:00:00Z",
+    "updatedAt": "2026-02-15T14:30:00Z"
+  }
+]
+```
+
+#### Get Screen
+
+```
+GET /api/cms/screens/:id
+```
+
+Returns a single screen by its database record ID.
+
+**Response:** [`ScreenRecord`](#screenrecord)
+
+**Error Responses:**
+
+| Status | Description      |
+| ------ | ---------------- |
+| 404    | Screen not found |
+
+#### Create Screen
+
+```
+POST /api/cms/screens
+```
+
+**Request Body:**
+
+| Field        | Type             | Required | Description                               |
+| ------------ | ---------------- | -------- | ----------------------------------------- |
+| `screenId`   | `string`         | Yes      | Logical screen identifier (e.g. `"home"`) |
+| `brand`      | `string`         | Yes      | Brand this screen belongs to              |
+| `segment`    | `string \| null` | No       | User segment, or `null` for default       |
+| `components` | `string`         | Yes      | JSON-encoded array of `SduiComponent`     |
+| `published`  | `boolean`        | No       | Defaults to `false`                       |
+
+```json
+{
+  "screenId": "promotions",
+  "brand": "brand_a",
+  "segment": null,
+  "components": "[{\"id\":\"promo_1\",\"type\":\"hero_banner\",\"props\":{}}]"
+}
+```
+
+**Response (201):** [`ScreenRecord`](#screenrecord)
+
+**Error Responses:**
+
+| Status | Description                               |
+| ------ | ----------------------------------------- |
+| 400    | Validation failed (Zod validation errors) |
+
+#### Update Screen
+
+```
+PUT /api/cms/screens/:id
+```
+
+Updates an existing screen. All fields are optional (partial update).
+
+**Request Body:**
+
+| Field        | Type             | Required | Description                           |
+| ------------ | ---------------- | -------- | ------------------------------------- |
+| `screenId`   | `string`         | No       | Logical screen identifier             |
+| `brand`      | `string`         | No       | Brand this screen belongs to          |
+| `segment`    | `string \| null` | No       | User segment                          |
+| `components` | `string`         | No       | JSON-encoded array of `SduiComponent` |
+| `published`  | `boolean`        | No       | Published status                      |
+
+**Response:** [`ScreenRecord`](#screenrecord)
+
+**Error Responses:**
+
+| Status | Description                               |
+| ------ | ----------------------------------------- |
+| 400    | Validation failed (Zod validation errors) |
+| 404    | Screen not found                          |
+
+#### Publish Screen
+
+```
+POST /api/cms/screens/:id/publish
+```
+
+Sets `published = true` and invalidates the server cache for this screen.
+
+**Response:** [`ScreenRecord`](#screenrecord) (with `published: true`)
+
+**Error Responses:**
+
+| Status | Description      |
+| ------ | ---------------- |
+| 404    | Screen not found |
+
+#### Unpublish Screen
+
+```
+POST /api/cms/screens/:id/unpublish
+```
+
+Sets `published = false`.
+
+**Response:** [`ScreenRecord`](#screenrecord) (with `published: false`)
+
+**Error Responses:**
+
+| Status | Description      |
+| ------ | ---------------- |
+| 404    | Screen not found |
+
+---
+
+### Feature Flags
+
+#### List Feature Flags
+
+```
+GET /api/cms/feature-flags
+```
+
+Returns all feature flags.
+
+**Response:** [`FeatureFlag[]`](#featureflag)
+
+```json
+[
+  {
+    "id": "1",
+    "key": "esim_support",
+    "description": "Enable eSIM activation flow",
+    "brandA": true,
+    "brandB": false,
+    "brandC": false,
+    "rolloutPercentage": 100
+  }
+]
+```
+
+#### Update Feature Flag
+
+```
+PATCH /api/cms/feature-flags/:id
+```
+
+Partially updates a feature flag. All fields are optional.
+
+**Request Body:**
+
+| Field               | Type      | Required | Description                |
+| ------------------- | --------- | -------- | -------------------------- |
+| `key`               | `string`  | No       | Flag key                   |
+| `description`       | `string`  | No       | Human-readable description |
+| `brandA`            | `boolean` | No       | Enabled for Brand A        |
+| `brandB`            | `boolean` | No       | Enabled for Brand B        |
+| `brandC`            | `boolean` | No       | Enabled for Brand C        |
+| `rolloutPercentage` | `integer` | No       | Rollout percentage (0–100) |
+
+**Response:** [`FeatureFlag`](#featureflag)
+
+**Error Responses:**
+
+| Status | Description                               |
+| ------ | ----------------------------------------- |
+| 400    | Validation failed (Zod validation errors) |
+| 404    | Feature flag not found                    |
+
+---
+
+### Themes
+
+#### List Themes
+
+```
+GET /api/cms/themes
+```
+
+Returns all brand themes.
+
+**Response:**
+
+```json
+[
+  {
+    "id": "1",
+    "brand": "brand_a",
+    "colors": "{\"primary\":\"#003366\",\"secondary\":\"#FFD700\",\"accent\":\"#0066CC\",\"background\":\"#FFFFFF\",\"text\":\"#333333\"}",
+    "typography": "{\"fontFamily\":\"Inter\",\"headingWeight\":\"700\",\"bodyWeight\":\"400\"}",
+    "assets": "{\"logo\":\"https://via.placeholder.com/200x80\"}"
+  }
+]
+```
+
+<Callout type="info">
+  The CMS API returns theme fields as JSON strings. The public [`GET
+  /config/:brand`](#get-brand-config) endpoint returns them parsed as objects
+  within the [`BrandTheme`](#brandtheme) structure.
+</Callout>
+
+#### Get Theme
+
+```
+GET /api/cms/themes/:brand
+```
+
+Returns the theme for a specific brand.
+
+**Response:** Theme record (same shape as list items above).
+
+**Error Responses:**
+
+| Status | Description     |
+| ------ | --------------- |
+| 404    | Theme not found |
+
+#### Update Theme
+
+```
+PUT /api/cms/themes/:brand
+```
+
+Updates the theme for a brand. Creates the theme if it doesn't exist (upsert).
+
+**Request Body:**
+
+| Field        | Type               | Required | Description                           |
+| ------------ | ------------------ | -------- | ------------------------------------- |
+| `colors`     | `string \| object` | No       | Color palette (JSON string or object) |
+| `typography` | `string \| object` | No       | Typography settings                   |
+| `assets`     | `string \| object` | No       | Visual assets                         |
+
+**Response:** Updated theme record.
+
+---
+
+### A/B Tests
+
+#### List A/B Tests
+
+```
+GET /api/cms/ab-tests
+```
+
+Returns all A/B tests with their variants.
+
+**Response:** [`AbTest[]`](#abtest)
+
+```json
+[
+  {
+    "id": "1",
+    "name": "Home Layout Test",
+    "screenId": "home",
+    "brand": "brand_b",
+    "active": true,
+    "createdAt": "2026-02-12T09:00:00Z",
+    "variants": [
+      {
+        "id": "1",
+        "testId": "1",
+        "name": "Variant A - Hero First",
+        "percentage": 50,
+        "components": [{ "id": "hero", "type": "hero_banner", "props": {} }]
+      },
+      {
+        "id": "2",
+        "testId": "1",
+        "name": "Variant B - Actions First",
+        "percentage": 50,
+        "components": [{ "id": "actions", "type": "action_grid", "props": {} }]
+      }
+    ]
+  }
+]
+```
+
+#### Create A/B Test
+
+```
+POST /api/cms/ab-tests
+```
+
+**Request Body:**
+
+| Field      | Type   | Required | Description                 |
+| ---------- | ------ | -------- | --------------------------- |
+| `name`     | string | Yes      | Test name                   |
+| `screenId` | string | Yes      | Screen this test applies to |
+| `brand`    | string | Yes      | Brand this test applies to  |
+| `variants` | array  | Yes      | List of variant definitions |
+
+Each variant:
+
+| Field        | Type                                | Required | Description          |
+| ------------ | ----------------------------------- | -------- | -------------------- |
+| `name`       | `string`                            | Yes      | Variant display name |
+| `percentage` | `integer`                           | Yes      | Traffic percentage   |
+| `components` | [`SduiComponent[]`](#sduicomponent) | Yes      | Components to render |
+
+**Response (201):** [`AbTest`](#abtest) (with `active: false`)
+
+**Error Responses:**
+
+| Status | Description                               |
+| ------ | ----------------------------------------- |
+| 400    | Validation failed (Zod validation errors) |
+
+#### Activate Test
+
+```
+POST /api/cms/ab-tests/:id/activate
+```
+
+Activates an A/B test so it starts serving variants to users.
+
+**Response:** [`AbTest`](#abtest) (with `active: true`)
+
+**Error Responses:**
+
+| Status | Description        |
+| ------ | ------------------ |
+| 404    | A/B test not found |
+
+#### Deactivate Test
+
+```
+POST /api/cms/ab-tests/:id/deactivate
+```
+
+Deactivates an A/B test. Users will no longer receive variants.
+
+**Response:** [`AbTest`](#abtest) (with `active: false`)
+
+**Error Responses:**
+
+| Status | Description        |
+| ------ | ------------------ |
+| 404    | A/B test not found |
+
+#### Select Winner
+
+```
+POST /api/cms/ab-tests/:id/select-winner
+```
+
+Selects a winning variant, copies its components to the screen, and deactivates the test.
+
+**Request Body:**
+
+```json
+{
+  "variantId": "2"
+}
+```
+
+**Response:** [`AbTest`](#abtest) (with `active: false`)
+
+**Error Responses:**
+
+| Status | Description                      |
+| ------ | -------------------------------- |
+| 400    | `variantId` missing or not found |
+| 404    | A/B test not found               |
+
+---
+
+### Analytics
+
+#### Get Analytics Summary
+
+```
+GET /api/cms/analytics/summary
+```
+
+Returns aggregate analytics for the CMS dashboard.
+
+**Response:**
+
+| Field          | Type                                           | Description                  |
+| -------------- | ---------------------------------------------- | ---------------------------- |
+| `totalEvents`  | `integer`                                      | Total event count            |
+| `countsByType` | `Array<{ eventType: string, count: integer }>` | Event counts grouped by type |
+| `recentEvents` | [`AnalyticsEvent[]`](#analyticsevent)          | Last 100 events              |
+
+```json
+{
+  "totalEvents": 1250,
+  "countsByType": [
+    { "eventType": "screen_view", "count": 500 },
+    { "eventType": "button_click", "count": 350 },
+    { "eventType": "impression", "count": 300 },
+    { "eventType": "ab_variant_assigned", "count": 100 }
+  ],
+  "recentEvents": [
+    {
+      "id": "1250",
+      "eventType": "button_click",
+      "brand": "brand_a",
+      "userId": "user123",
+      "screenId": "home",
+      "payload": { "component_id": "hero_cta" },
+      "createdAt": "2026-02-17T10:30:00Z"
+    }
+  ]
+}
+```
+
+#### Get A/B Test Distribution
+
+```
+GET /api/cms/analytics/ab-distribution/:testId
+```
+
+Returns variant assignment distribution for a specific A/B test.
+
+**Response:**
+
+```json
+{
+  "testId": "1",
+  "distribution": [
+    { "variantId": "1", "count": 48 },
+    { "variantId": "2", "count": 52 }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status | Description        |
+| ------ | ------------------ |
+| 404    | A/B test not found |
+
+---
+
+### API Keys
+
+#### List API Keys
+
+```
+GET /api/cms/api-keys
+```
+
+Returns all API keys with masked values.
+
+**Response:** [`ApiKeyRecord[]`](#apikeyrecord)
+
+```json
+[
+  {
+    "id": "1",
+    "label": "Brand A Production",
+    "keyPreview": "sk_****demo",
+    "brand": "brand_a",
+    "active": true,
+    "createdAt": "2026-02-10T08:00:00Z"
+  }
+]
+```
+
+#### Create API Key
+
+```
+POST /api/cms/api-keys
+```
+
+**Request Body:**
+
+| Field   | Type             | Required | Description                           |
+| ------- | ---------------- | -------- | ------------------------------------- |
+| `label` | `string`         | Yes      | Human-readable label                  |
+| `brand` | `string \| null` | No       | Brand scope, or `null` for all brands |
+
+**Response (201):**
+
+```json
+{
+  "id": "5",
+  "key": "sk_a1b2c3d4e5f6...",
+  "label": "Brand A Production",
+  "brand": "brand_a"
+}
+```
+
+<Callout type="warn">
+  The full API key is only returned once on creation. Store it securely — it
+  cannot be retrieved again.
+</Callout>
+
+**Error Responses:**
+
+| Status | Description                               |
+| ------ | ----------------------------------------- |
+| 400    | Validation failed (Zod validation errors) |
+
+#### Delete API Key
+
+```
+DELETE /api/cms/api-keys/:id
+```
+
+Soft-deletes an API key (sets `active: false`). The key can no longer be used for authentication.
+
+**Response:**
+
+```json
+{ "ok": true }
+```
+
+**Error Responses:**
+
+| Status | Description       |
+| ------ | ----------------- |
+| 404    | API key not found |
+
+---
+
+## Demo API Keys
+
+These keys are pre-seeded for development:
+
+| Key                     | Brand Scope  |
+| ----------------------- | ------------ |
+| `sk_brand_a_demo_key`   | Brand A only |
+| `sk_brand_b_demo_key`   | Brand B only |
+| `sk_brand_c_demo_key`   | Brand C only |
+| `sk_all_brands_dev_key` | All brands   |
+
+**Example usage:**
+
+```bash
+curl "http://localhost:3001/api/v1/screens/home?brand=brand_a" \
+  -H "X-API-Key: sk_brand_a_demo_key"
+```

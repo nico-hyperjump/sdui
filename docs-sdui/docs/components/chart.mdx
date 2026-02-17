@@ -1,0 +1,65 @@
+---
+title: Chart
+description: Data visualization
+---
+
+# Chart
+
+Component that renders data visualizations including bar charts, line charts, pie charts, and donut charts. Currently renders bar chart with proportional heights. Other chart types show a type-labeled placeholder. Use Chart for analytics, statistics, or any data-driven visualizations.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `type` | `"bar" \| "line" \| "pie" \| "donut"` | `"bar"` | Chart type variant |
+| `data` | `number[]` | — | Array of numeric data values |
+| `labels` | `string[]` | — | Array of label strings for data points |
+| `height` | `number` | `120` | Chart height in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "chart-1",
+      "type": "chart",
+      "props": {
+        "type": "bar",
+        "data": [20, 45, 28, 80, 99],
+        "labels": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        "height": 200
+      }
+    },
+    {
+      "id": "chart-2",
+      "type": "chart",
+      "props": {
+        "type": "line",
+        "data": [10, 25, 35, 50, 45],
+        "labels": ["Q1", "Q2", "Q3", "Q4"],
+        "height": 150
+      }
+    },
+    {
+      "id": "chart-3",
+      "type": "chart",
+      "props": {
+        "type": "pie",
+        "data": [30, 25, 20, 15, 10],
+        "labels": ["A", "B", "C", "D", "E"]
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Currently renders bar chart with proportional heights
+- Other chart types (line, pie, donut) show a type-labeled placeholder
+- Use for analytics dashboards, statistics displays, or data-driven visualizations
+- Data and labels arrays must have matching lengths
+- Height prop controls vertical size of the chart

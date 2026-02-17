@@ -1,0 +1,67 @@
+---
+title: Chip
+description: Small label/tag component
+---
+
+# Chip
+
+Small label or tag component that displays text in a compact, pill-shaped container. Use Chip for filters, categories, status indicators, or any small labeled element.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `label` | `string` | — | Chip text label |
+| `text` | `string` | — | Alternative prop name for label |
+| `variant` | `"filled" \| "outlined"` | `"filled"` | Visual style variant |
+| `selected` | `boolean` | `false` | Whether the chip is in selected state |
+| `action` | `object` | — | Optional action configuration |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "row",
+  "children": [
+    {
+      "id": "chip-1",
+      "type": "chip",
+      "props": {
+        "label": "Electronics",
+        "variant": "filled",
+        "selected": true
+      }
+    },
+    {
+      "id": "chip-2",
+      "type": "chip",
+      "props": {
+        "label": "Clothing",
+        "variant": "outlined",
+        "selected": false
+      }
+    },
+    {
+      "id": "chip-3",
+      "type": "chip",
+      "props": {
+        "text": "Sale",
+        "variant": "filled",
+        "action": {
+          "type": "navigate",
+          "screen": "sale-items"
+        }
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Chip supports both `label` and `text` props for the chip text
+- Use filled variant for primary chips, outlined for secondary
+- Selected state provides visual feedback for active filters or categories
+- Supports action for tappable chips
+- Ideal for filters, categories, and status indicators

@@ -1,0 +1,58 @@
+---
+title: Checkbox
+description: Checkbox input
+---
+
+# Checkbox
+
+Checkbox input component that displays a checkbox with a label. Tap to toggle the checked state. Shows a checkmark icon in a filled box when checked. Ideal for forms, filters, terms acceptance, or any boolean input.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `label` | `string` | — | Label text displayed next to the checkbox |
+| `value` | `boolean` | `false` | Whether the checkbox is checked |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "checkbox-1",
+      "type": "checkbox",
+      "props": {
+        "label": "Accept terms and conditions",
+        "value": false
+      }
+    },
+    {
+      "id": "checkbox-2",
+      "type": "checkbox",
+      "props": {
+        "label": "Subscribe to newsletter",
+        "value": true
+      }
+    },
+    {
+      "id": "checkbox-3",
+      "type": "checkbox",
+      "props": {
+        "label": "Enable notifications"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Checkbox displays a checkbox input with a label
+- Tap to toggle the checked state
+- Checkmark icon appears in a filled box when checked
+- Default value is false (unchecked)
+- Ideal for forms, filters, terms acceptance, boolean inputs
+- Value prop controls the checked state

@@ -1,0 +1,50 @@
+---
+title: Countdown Timer
+description: Live countdown display
+---
+
+# Countdown Timer
+
+Live countdown timer component that displays days, hours, minutes, and seconds segments that tick in real-time. Ideal for flash sales, deal expiry, event countdowns, or any time-sensitive content.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `endTime` | `string` | — | Target end time in ISO 8601 format |
+| `label` | `string` | — | Optional label text displayed above the timer |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "timer-1",
+      "type": "countdown_timer",
+      "props": {
+        "endTime": "2026-02-20T23:59:59Z",
+        "label": "Sale Ends In"
+      }
+    },
+    {
+      "id": "timer-2",
+      "type": "countdown_timer",
+      "props": {
+        "endTime": "2026-12-31T00:00:00Z"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Countdown Timer displays days, hours, minutes, and seconds segments
+- Timer updates in real-time as it counts down
+- End time must be provided in ISO 8601 format
+- Ideal for flash sales, deal expiry, event countdowns
+- Optional label can be displayed above the timer
+- Timer automatically stops when end time is reached

@@ -1,0 +1,53 @@
+---
+title: Spacer
+description: Vertical spacer
+---
+
+# Spacer
+
+Component that creates empty vertical space between components. Use Spacer to add consistent spacing in layouts without using gap properties.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `height` | `number` | `16` | Height of the spacer in pixels |
+| `size` | `number` | `16` | Alternative prop name for height |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "Top content"
+      }
+    },
+    {
+      "id": "spacer-1",
+      "type": "spacer",
+      "props": {
+        "height": 32
+      }
+    },
+    {
+      "id": "text-2",
+      "type": "text",
+      "props": {
+        "content": "Bottom content"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Use Spacer when you need custom spacing that differs from container gap
+- Both `height` and `size` props are supported for flexibility
+- Spacer creates vertical space only

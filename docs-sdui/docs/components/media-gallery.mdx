@@ -1,0 +1,74 @@
+---
+title: Media Gallery
+description: Horizontal image/video gallery
+---
+
+# Media Gallery
+
+Component that displays a horizontal scrolling gallery of images and videos. FlatList-based horizontal scroll with 16:9 aspect ratio per item. Use Media Gallery for product photos, property listings, image carousels, or any screen requiring horizontal media browsing.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `items` | `array` | — | Array of media items with `uri` and optional `type` |
+| `height` | `number` | `200` | Gallery height in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "gallery-1",
+      "type": "media_gallery",
+      "props": {
+        "items": [
+          {
+            "uri": "https://example.com/images/product-1.jpg",
+            "type": "image"
+          },
+          {
+            "uri": "https://example.com/images/product-2.jpg",
+            "type": "image"
+          },
+          {
+            "uri": "https://example.com/videos/demo.mp4",
+            "type": "video"
+          }
+        ],
+        "height": 250
+      }
+    },
+    {
+      "id": "gallery-2",
+      "type": "media_gallery",
+      "props": {
+        "items": [
+          {
+            "uri": "https://example.com/property/photo1.jpg"
+          },
+          {
+            "uri": "https://example.com/property/photo2.jpg"
+          },
+          {
+            "uri": "https://example.com/property/photo3.jpg"
+          }
+        ],
+        "height": 200
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- FlatList-based horizontal scroll implementation
+- Each item maintains 16:9 aspect ratio
+- Use for product photos, property listings, image carousels, or media showcases
+- Items array contains objects with `uri` (required) and optional `type` field
+- Height prop controls the vertical size of the gallery
+- Supports both images and videos in the same gallery

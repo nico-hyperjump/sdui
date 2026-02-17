@@ -1,0 +1,56 @@
+---
+title: Search Bar
+description: Tappable search input
+---
+
+# Search Bar
+
+Tappable search input component that displays a placeholder and navigates to a search screen when tapped. Use Search Bar as a quick access point to search functionality.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `placeholder` | `string` | `"Search..."` | Placeholder text displayed in the search bar |
+| `action` | `object` | — | Action configuration to navigate to search screen |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "search-bar-1",
+      "type": "search_bar",
+      "props": {
+        "placeholder": "Search products...",
+        "action": {
+          "type": "navigate",
+          "screen": "search"
+        }
+      }
+    },
+    {
+      "id": "search-bar-2",
+      "type": "search_bar",
+      "props": {
+        "placeholder": "Search",
+        "action": {
+          "type": "navigate",
+          "screen": "search-screen"
+        }
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Search Bar is not a real input — it's a tappable placeholder
+- Tapping the search bar triggers the configured action
+- Default placeholder is "Search..." but can be customized
+- Use to navigate to a dedicated search screen
+- Typically placed at the top of screens for quick search access

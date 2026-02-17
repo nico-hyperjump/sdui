@@ -1,0 +1,49 @@
+---
+title: Column
+description: Vertical list with spacing
+---
+
+# Column
+
+Container component that renders children vertically with consistent spacing between them. Column is an alias for vertical layout, similar to Stack but with different semantic meaning.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `gap` | `number` | `8` | Spacing between child components in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "column",
+  "props": {
+    "gap": 16
+  },
+  "children": [
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "Header",
+        "variant": "heading"
+      }
+    },
+    {
+      "id": "text-2",
+      "type": "text",
+      "props": {
+        "content": "Body content"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Column is functionally similar to Stack but provides semantic distinction
+- Use Column when the vertical arrangement represents a logical column structure
+- Gap applies spacing between all direct children

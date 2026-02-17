@@ -1,0 +1,302 @@
+---
+title: Data Sources
+description: How the SDUI platform resolves dynamic data for screens using server-side data providers and template expressions.
+---
+
+# Data Sources
+
+Data sources let screens display dynamic, real-time information — user account
+details, marketing offers, pricing, and more — instead of static strings baked
+into component props.
+
+## How It Works
+
+<Mermaid chart={`
+sequenceDiagram
+    participant Mobile as Mobile App
+    participant SDUI as SDUI Server
+    participant Marketing as Marketing Source :3002
+    participant Account as Account Source :3003
+
+    Mobile->>SDUI: GET /api/v1/screens/home?brand=brand_a&user_id=user-1
+    SDUI->>SDUI: Load screen template from DB
+    par Fetch data in parallel
+        SDUI->>Marketing: GET /api/offers?brand=brand_a
+        Marketing-->>SDUI: [{ title: "50GB", price: "Rp 99.000" }, ...]
+    and
+        SDUI->>Account: GET /api/accounts/user-1
+        Account-->>SDUI: { name: "Andi", balance: 45000, ... }
+    end
+    SDUI->>SDUI: Resolve template expressions
+    SDUI-->>Mobile: Fully resolved SduiScreen
+
+`}
+/>
+
+1. **Screen template** is stored in the database with `dataSources` and `{{expressions}}` in component props.
+2. **Data resolver** calls all declared providers in parallel.
+3. **Template resolver** walks the component tree and replaces expressions with resolved values.
+4. **Client** receives a normal `SduiScreen` — no SDK changes needed.
+
+## Concepts
+
+### Data Source Declaration
+
+A screen declares which data it needs via the `dataSources` array:
+
+```json
+{
+  "dataSources": [
+    { "id": "offers", "provider": "marketing", "params": { "limit": 3 } },
+    { "id": "account", "provider": "account" }
+  ]
+}
+```
+
+| Field      | Description                                      |
+| ---------- | ------------------------------------------------ |
+| `id`       | Key used in template expressions (e.g. `offers`) |
+| `provider` | Name of the registered server-side provider      |
+| `params`   | Optional parameters passed to the provider       |
+
+### Template Expressions
+
+Component props can contain `{{sourceId.path.to.value}}` expressions:
+
+```json
+{
+  "id": "greeting",
+  "type": "text",
+  "props": {
+    "content": "Hi {{account.name}}, your balance is {{account.currency}} {{account.balance}}"
+  }
+}
+```
+
+**Type preservation:** When an entire prop is a single expression (e.g. `"{{account.balance}}"`),
+the resolved value's type is preserved (number, boolean, object). Mixed expressions
+always resolve to strings.
+
+### Repeat Directive
+
+The `repeat` directive renders a component once per item in a data array:
+
+```json
+{
+  "id": "offer-tmpl",
+  "type": "product_card",
+  "repeat": { "source": "offers", "as": "offer" },
+  "props": {
+    "title": "{{offer.title}}",
+    "price": "{{offer.price}}",
+    "badge": "{{offer.badge}}"
+  }
+}
+```
+
+This generates `offer-tmpl-0`, `offer-tmpl-1`, etc. — one card per offer.
+
+## Creating a Data Source App
+
+Each data source is a standalone Hono application with its own database.
+
+### 1. Create the app
+
+```
+apps/my-source/
+├── package.json
+├── tsconfig.json
+├── prisma.config.ts
+├── prisma/
+│   └── schema.prisma
+└── src/
+    ├── db.ts          # Prisma client singleton
+    ├── index.ts       # Hono server entry
+    ├── routes/
+    │   └── items.ts   # CRUD routes
+    └── seed.ts        # Demo data
+```
+
+### 2. Define the Prisma schema
+
+```prisma
+model Item {
+  id        String   @id @default(uuid())
+  title     String
+  brand     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("items")
+}
+```
+
+### 3. Create API routes
+
+Follow the existing pattern from `apps/marketing-source/src/routes/offers.ts`:
+
+- `GET /api/items?brand=` — list active items
+- `GET /api/items/:id` — single item
+- `POST /api/items` — create
+- `PUT /api/items/:id` — update
+- `DELETE /api/items/:id` — delete
+
+### 4. Run migrations and seed
+
+```bash
+cd apps/my-source
+npx prisma migrate dev --name init
+npx prisma generate
+npx tsx src/seed.ts
+```
+
+## Creating a Data Provider
+
+Providers are TypeScript functions registered on the SDUI server.
+
+### 1. Create the provider
+
+Create `packages/sdui-service/src/providers/my-provider.ts`:
+
+```typescript
+import type { DataProviderFn } from "../services/data-provider-registry";
+
+const DEFAULT_URL = process.env["MY_SOURCE_URL"] ?? "http://localhost:3004";
+
+/**
+ * Creates a data provider that fetches items from the my-source API.
+ *
+ * @param baseUrl - Base URL of the source app.
+ * @returns A DataProviderFn.
+ */
+export function createMyProvider(
+  baseUrl: string = DEFAULT_URL,
+): DataProviderFn {
+  return async (params, context) => {
+    const url = new URL("/api/items", baseUrl);
+    url.searchParams.set("brand", context.brand);
+
+    const response = await fetch(url.toString());
+    if (!response.ok) throw new Error(`My API returned ${response.status}`);
+
+    return (await response.json()) as unknown;
+  };
+}
+```
+
+### 2. Write tests
+
+Create `packages/sdui-service/src/providers/my-provider.test.ts` with:
+
+- Happy path test (mock fetch, verify URL and returned data)
+- Error handling test (non-OK status throws)
+- Context parameter test (brand/segment passed correctly)
+
+### 3. Register the provider
+
+In `apps/server/src/index.ts`:
+
+```typescript
+import { createMyProvider } from "@workspace/sdui-service/src/providers/my-provider";
+
+providerRegistry.register("my-source", createMyProvider());
+```
+
+### 4. Use in screen templates
+
+In the CMS or seed data:
+
+```json
+{
+  "dataSources": [{ "id": "items", "provider": "my-source" }],
+  "components": [
+    {
+      "id": "item-tmpl",
+      "type": "list_item",
+      "repeat": { "source": "items", "as": "item" },
+      "props": { "title": "{{item.title}}" }
+    }
+  ]
+}
+```
+
+## Extending the CMS
+
+To add admin UI for a new data source:
+
+1. **API client** — Add methods to `packages/cms/src/api-client.ts` using the `sourceRequest` helper.
+2. **Page** — Create `packages/cms/src/pages/my-source/index.tsx` following the `marketing/index.tsx` pattern.
+3. **Router** — Add a route in `packages/cms/src/app.tsx`.
+4. **Navigation** — Add a nav item in the "Data Sources" section of `packages/cms/src/components/layout.tsx`.
+
+## Configuration
+
+| Environment Variable     | Default                 | Description                   |
+| ------------------------ | ----------------------- | ----------------------------- |
+| `MARKETING_SOURCE_URL`   | `http://localhost:3002` | Marketing source API base URL |
+| `ACCOUNT_SOURCE_URL`     | `http://localhost:3003` | Account source API base URL   |
+| `MARKETING_DATABASE_URL` | `file:./prisma/dev.db`  | Marketing source SQLite path  |
+| `ACCOUNT_DATABASE_URL`   | `file:./prisma/dev.db`  | Account source SQLite path    |
+
+## Error Handling
+
+- **Provider not found:** Logged as a warning; affected expressions resolve to empty strings.
+- **Provider fails:** Error is caught and logged; other data sources still resolve.
+- **Missing data path:** Expressions referencing non-existent paths resolve to empty strings.
+- **Repeat on non-array:** Component is silently removed (no crash).
+
+## Testing Providers
+
+Providers are tested in isolation by mocking `fetch`:
+
+```typescript
+import { vi } from "vitest";
+
+const fetchSpy = vi
+  .spyOn(globalThis, "fetch")
+  .mockResolvedValue(
+    new Response(JSON.stringify([{ title: "Test" }]), { status: 200 }),
+  );
+
+const provider = createMyProvider("http://test:3004");
+const result = await provider({}, { brand: "brand_a" });
+
+expect(fetchSpy).toHaveBeenCalledWith(
+  "http://test:3004/api/items?brand=brand_a",
+);
+expect(result).toEqual([{ title: "Test" }]);
+```
+
+## Architecture Diagram
+
+<Mermaid chart={`
+flowchart TB
+    subgraph clients [Clients]
+        mobile[Mobile App]
+        cms[CMS Admin Panel]
+    end
+
+    subgraph sduiServer [SDUI Server :3001]
+        screenResolver[Screen Resolver]
+        dataProviders[Data Provider Registry]
+        templateResolver[Template Resolver]
+    end
+
+    subgraph sources [Data Source Apps]
+        marketing[Marketing Source :3002]
+        account[Account Source :3003]
+    end
+
+    mobile -->|"GET /api/v1/screens/home"| screenResolver
+    screenResolver --> dataProviders
+    dataProviders -->|"GET /api/offers"| marketing
+    dataProviders -->|"GET /api/accounts/:userId"| account
+    dataProviders --> templateResolver
+    templateResolver -->|"Resolved SduiScreen"| mobile
+
+    cms -->|"CRUD offers"| marketing
+    cms -->|"CRUD accounts"| account
+    cms -->|"Manage screens"| sduiServer
+
+`}
+/>

@@ -1,0 +1,78 @@
+---
+title: SDUI Platform
+description: Server-Driven UI platform for multi-brand mobile applications
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+Welcome to the documentation for the **Server-Driven UI (SDUI) Platform** — a hybrid architecture that powers multi-brand mobile applications from a single codebase.
+
+## What is the SDUI Platform?
+
+The SDUI Platform enables a single React Native codebase to serve **multiple branded mobile apps** (iOS and Android) whose UI layouts, content, feature flags, and A/B tests are all controlled from a central server and CMS — **without requiring app store submissions**.
+
+<Callout type="info">
+  This platform was built as a Proof of Concept demonstrating how three mobile
+  brands can share over 80% of their codebase while maintaining distinct visual
+  identities and feature sets.
+</Callout>
+
+## Key Capabilities
+
+- **Server-Driven UI** — Screen layouts defined as JSON schemas, rendered dynamically on the client
+- **Multi-Brand Support** — Three distinct brand themes from one codebase (Premium, Youth, Value)
+- **Instant Updates** — Change UI content via CMS without app store submissions
+- **Feature Flags** — Toggle features per brand with rollout percentage control
+- **A/B Testing** — Deterministic variant assignment for layout experiments
+- **Personalization** — Segment-based content (prepaid, postpaid, business)
+- **Analytics** — Built-in event tracking for impressions, clicks, and screen views
+- **OTA Updates** — Over-the-air code updates via Expo Updates
+
+## Quick Start
+
+<Steps>
+<Step>
+
+### Install dependencies
+
+```bash
+pnpm install
+```
+
+</Step>
+<Step>
+
+### Start the platform
+
+```bash
+pnpm dev:sdui
+```
+
+This sets up the database, seeds demo data, and starts both the API server and CMS.
+
+</Step>
+<Step>
+
+### Explore
+
+- **API Server** — http://localhost:3001
+- **CMS Admin** — http://localhost:5173/admin
+- **CMS Login** — `admin@telco-poc.com` / `admin123`
+
+</Step>
+</Steps>
+
+## Documentation Sections
+
+| Section                                              | Description                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------- |
+| [Overview](/overview)                                | System overview, problem statement, and solution architecture |
+| [Architecture](/architecture)                        | Package structure, layers, and dependency graph               |
+| [Data Flow](/architecture/data-flow)                 | Request lifecycle, caching, and personalization               |
+| [Sequence Diagrams](/architecture/sequence-diagrams) | Visual flows for key operations                               |
+| [API Reference](/architecture/api-reference)         | Public and CMS API endpoints                                  |
+| [Database Schema](/architecture/database-schema)     | Prisma models and relationships                               |
+| [SDK Guide](/guides/sdk)                             | React Native SDK usage, hooks, and renderer                   |
+| [CMS Guide](/guides/cms)                             | Admin panel features and workflows                            |
+| [Development Guide](/guides/development)             | Setup, running, testing, and project structure                |

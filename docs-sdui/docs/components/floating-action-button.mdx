@@ -1,0 +1,59 @@
+---
+title: Floating Action Button
+description: Fixed-position circular button
+---
+
+# Floating Action Button
+
+Fixed-position circular button component that displays an elevated button floating above the content. Supports custom icon and label, with configurable position (bottom-right or bottom-left). Ideal for primary actions like "Add", "Create", or main navigation.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `icon` | `string` | `"+"` | Icon symbol or name displayed in the button |
+| `label` | `string` | — | Optional label text displayed below or next to the button |
+| `position` | `"bottom-right" \| "bottom-left"` | `"bottom-right"` | Fixed position of the button |
+| `action` | `object` | — | Action configuration (navigate, webview, custom) |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "fab-1",
+      "type": "floating_action_button",
+      "props": {
+        "icon": "+",
+        "label": "Add Item",
+        "position": "bottom-right",
+        "action": {
+          "type": "navigate",
+          "screen": "add-item"
+        }
+      }
+    },
+    {
+      "id": "fab-2",
+      "type": "floating_action_button",
+      "props": {
+        "icon": "✏️",
+        "position": "bottom-left"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Floating Action Button displays a fixed-position circular button
+- Button floats above the content with elevation/shadow
+- Default icon is "+" but can be customized
+- Optional label can be displayed below or next to the button
+- Position can be bottom-right (default) or bottom-left
+- Supports action configuration for navigation or custom interactions
+- Ideal for primary actions like "Add", "Create", or main navigation

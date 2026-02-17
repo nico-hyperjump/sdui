@@ -1,0 +1,260 @@
+---
+title: Database Schema
+description: Prisma models, table relationships, and entity-relationship diagram
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+The SDUI Platform uses **SQLite** as its database, managed through **Prisma ORM** with the Better SQLite3 adapter. The database file lives in the `packages/sdui-database` package.
+
+## Entity-Relationship Diagram
+
+<Mermaid
+  chart="
+erDiagram
+Screen {
+  int id PK
+  string screenId
+  string brand
+  string segment
+  string components
+  int version
+  boolean published
+  datetime createdAt
+  datetime updatedAt
+}
+FeatureFlag {
+  int id PK
+  string key UK
+  string description
+  boolean brandA
+  boolean brandB
+  boolean brandC
+  int rolloutPercentage
+  datetime createdAt
+  datetime updatedAt
+}
+Theme {
+  int id PK
+  string brand UK
+  string colors
+  string typography
+  string assets
+  datetime createdAt
+  datetime updatedAt
+}
+AnalyticsEvent {
+  int id PK
+  string eventType
+  string brand
+  string userId
+  string screenId
+  string payload
+  datetime createdAt
+}
+AbTest {
+  int id PK
+  string name
+  string screenId
+  string brand
+  boolean active
+  datetime createdAt
+  datetime updatedAt
+}
+AbTestVariant {
+  int id PK
+  int testId FK
+  string name
+  int percentage
+  string components
+}
+ApiKey {
+  int id PK
+  string key UK
+  string label
+  string brand
+  boolean active
+  datetime createdAt
+}
+AdminUser {
+  int id PK
+  string email UK
+  string passwordHash
+  datetime createdAt
+}
+AbTest ||--|{ AbTestVariant : has-variants"
+/>
+
+## Table Details
+
+### Screen
+
+Stores server-driven UI screen definitions. Each screen is scoped to a brand and optionally a user segment.
+
+| Column       | Type     | Constraints        | Description                                                           |
+| ------------ | -------- | ------------------ | --------------------------------------------------------------------- |
+| `id`         | Int      | PK, auto-increment | Primary key                                                           |
+| `screenId`   | String   | Not null           | Logical screen name (e.g., `home`, `plans`)                           |
+| `brand`      | String   | Not null           | Brand identifier (`brand_a`, `brand_b`, `brand_c`)                    |
+| `segment`    | String   | Nullable           | User segment (`prepaid`, `postpaid`, `business`, or null for default) |
+| `components` | String   | Not null           | JSON string containing the component tree                             |
+| `version`    | Int      | Default: 1         | Schema version for backward compatibility                             |
+| `published`  | Boolean  | Default: false     | Whether the screen is live                                            |
+| `createdAt`  | DateTime | Auto               | Creation timestamp                                                    |
+| `updatedAt`  | DateTime | Auto               | Last update timestamp                                                 |
+
+**Unique Constraint:** `(screenId, brand, segment)` — ensures one screen definition per brand/segment combination.
+
+<Callout type="info">
+  The `components` column stores a JSON string that conforms to the
+  `SduiComponent[]` schema defined in `@workspace/sdui-schema`. It is parsed and
+  validated at runtime.
+</Callout>
+
+---
+
+### FeatureFlag
+
+Feature flags with per-brand toggle control and rollout percentage.
+
+| Column              | Type     | Constraints        | Description                                  |
+| ------------------- | -------- | ------------------ | -------------------------------------------- |
+| `id`                | Int      | PK, auto-increment | Primary key                                  |
+| `key`               | String   | Unique             | Flag identifier (e.g., `esim_support`)       |
+| `description`       | String   | Nullable           | Human-readable description                   |
+| `brandA`            | Boolean  | Default: false     | Enabled for Brand A                          |
+| `brandB`            | Boolean  | Default: false     | Enabled for Brand B                          |
+| `brandC`            | Boolean  | Default: false     | Enabled for Brand C                          |
+| `rolloutPercentage` | Int      | Default: 100       | Percentage of users who see the flag (0-100) |
+| `createdAt`         | DateTime | Auto               | Creation timestamp                           |
+| `updatedAt`         | DateTime | Auto               | Last update timestamp                        |
+
+**Rollout Logic:** When `rolloutPercentage` < 100, a deterministic hash of `(userId + flagKey)` determines whether a specific user sees the flag as enabled.
+
+---
+
+### Theme
+
+Brand-specific visual themes stored as JSON strings.
+
+| Column       | Type     | Constraints        | Description                                              |
+| ------------ | -------- | ------------------ | -------------------------------------------------------- |
+| `id`         | Int      | PK, auto-increment | Primary key                                              |
+| `brand`      | String   | Unique             | Brand identifier                                         |
+| `colors`     | String   | Not null           | JSON: `{ primary, secondary, accent, background, text }` |
+| `typography` | String   | Not null           | JSON: `{ font_family, heading_weight, body_weight }`     |
+| `assets`     | String   | Not null           | JSON: `{ logo, app_icon }`                               |
+| `createdAt`  | DateTime | Auto               | Creation timestamp                                       |
+| `updatedAt`  | DateTime | Auto               | Last update timestamp                                    |
+
+---
+
+### AnalyticsEvent
+
+Stores all analytics events from mobile apps.
+
+| Column      | Type     | Constraints        | Description                                  |
+| ----------- | -------- | ------------------ | -------------------------------------------- |
+| `id`        | Int      | PK, auto-increment | Primary key                                  |
+| `eventType` | String   | Not null           | Event type (screen_view, button_click, etc.) |
+| `brand`     | String   | Not null           | Brand identifier                             |
+| `userId`    | String   | Nullable           | User identifier                              |
+| `screenId`  | String   | Nullable           | Screen where event occurred                  |
+| `payload`   | String   | Nullable           | JSON string with event-specific data         |
+| `createdAt` | DateTime | Auto               | Event timestamp                              |
+
+---
+
+### AbTest
+
+A/B test configuration targeting a specific screen and brand.
+
+| Column      | Type     | Constraints        | Description                 |
+| ----------- | -------- | ------------------ | --------------------------- |
+| `id`        | Int      | PK, auto-increment | Primary key                 |
+| `name`      | String   | Not null           | Human-readable test name    |
+| `screenId`  | String   | Not null           | Target screen               |
+| `brand`     | String   | Not null           | Target brand                |
+| `active`    | Boolean  | Default: false     | Whether the test is running |
+| `createdAt` | DateTime | Auto               | Creation timestamp          |
+| `updatedAt` | DateTime | Auto               | Last update timestamp       |
+
+---
+
+### AbTestVariant
+
+Individual variants within an A/B test, each with its own component tree.
+
+| Column       | Type   | Constraints        | Description                             |
+| ------------ | ------ | ------------------ | --------------------------------------- |
+| `id`         | Int    | PK, auto-increment | Primary key                             |
+| `testId`     | Int    | FK to AbTest.id    | Parent test                             |
+| `name`       | String | Not null           | Variant name (e.g., Hero First)         |
+| `percentage` | Int    | Not null           | Traffic allocation (0-100)              |
+| `components` | String | Not null           | JSON string of variant's component tree |
+
+**Cascade Delete:** When an `AbTest` is deleted, all its variants are automatically deleted.
+
+---
+
+### ApiKey
+
+API keys for authenticating mobile SDK requests.
+
+| Column      | Type     | Constraints        | Description                     |
+| ----------- | -------- | ------------------ | ------------------------------- |
+| `id`        | Int      | PK, auto-increment | Primary key                     |
+| `key`       | String   | Unique             | Hashed API key                  |
+| `label`     | String   | Not null           | Human-readable label            |
+| `brand`     | String   | Nullable           | Brand scope (null = all brands) |
+| `active`    | Boolean  | Default: true      | Whether the key is active       |
+| `createdAt` | DateTime | Auto               | Creation timestamp              |
+
+<Callout type="warn">
+  API keys are stored as hashed values. The original key is only shown once
+  during creation and cannot be retrieved from the database.
+</Callout>
+
+---
+
+### AdminUser
+
+CMS administrator accounts.
+
+| Column         | Type     | Constraints        | Description          |
+| -------------- | -------- | ------------------ | -------------------- |
+| `id`           | Int      | PK, auto-increment | Primary key          |
+| `email`        | String   | Unique             | Admin email address  |
+| `passwordHash` | String   | Not null           | Bcrypt password hash |
+| `createdAt`    | DateTime | Auto               | Creation timestamp   |
+
+---
+
+## Seed Data
+
+The `db:seed` script populates the database with demo data:
+
+- **3 brand themes** (Premium, Youth, Value)
+- **6 feature flags** (eSIM, chat, biometric, dark mode, push notifications, referral program)
+- **12 screens** (home + plans for each brand, with segment variants)
+- **1 A/B test** with 2 variants for Brand B's home screen
+- **Sample analytics events**
+- **4 API keys** (one per brand + one global)
+- **1 admin user** (`admin@telco-poc.com` / `admin123`)
+
+Run the seed script:
+
+```bash
+pnpm --filter @workspace/sdui-database db:setup
+```
+
+This generates the Prisma client, applies migrations, and seeds the database in one step.
+
+## Switching to PostgreSQL
+
+The platform supports PostgreSQL as an alternative. To switch:
+
+1. Change `provider = "sqlite"` to `provider = "postgresql"` in `schema.prisma`
+2. Replace the `@prisma/adapter-better-sqlite3` adapter with `@prisma/adapter-pg`
+3. Set the `SDUI_DATABASE_URL` environment variable to a PostgreSQL connection string
+4. Run `pnpm --filter @workspace/sdui-database db:migrate:dev` to generate new migrations

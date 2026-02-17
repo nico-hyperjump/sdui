@@ -1,0 +1,55 @@
+---
+title: Product Card
+description: Product display card
+---
+
+# Product Card
+
+E-commerce product listing card that displays product information including image, title, price, and optional badge. Use Product Card for product catalogs, shopping lists, and e-commerce screens.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `title` | `string` | — | Product name |
+| `price` | `string` | — | Product price (formatted as string) |
+| `imageUri` | `string` | — | Product image URL |
+| `image` | `string` | — | Alternative prop name for imageUri |
+| `badge` | `string` | — | Optional badge text (e.g., "Sale", "New") |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "product-1",
+      "type": "product_card",
+      "props": {
+        "title": "Wireless Headphones",
+        "price": "$99.99",
+        "imageUri": "https://example.com/headphones.jpg",
+        "badge": "Sale"
+      }
+    },
+    {
+      "id": "product-2",
+      "type": "product_card",
+      "props": {
+        "title": "Smart Watch",
+        "price": "$249.99",
+        "image": "https://example.com/watch.jpg"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Product Card displays product information in a card layout
+- Supports both `imageUri` and `image` props for the product image
+- Badge is optional and typically shown in the top-right corner
+- Use for e-commerce product listings and catalogs

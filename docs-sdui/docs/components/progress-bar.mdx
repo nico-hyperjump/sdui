@@ -1,0 +1,61 @@
+---
+title: Progress Bar
+description: Progress indicator
+---
+
+# Progress Bar
+
+Progress indicator component that displays completion status as either a horizontal bar or circular ring. Use Progress Bar to show loading states, completion percentages, or progress tracking.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `value` | `number` | — | Progress value (0-100) |
+| `variant` | `"bar" \| "circle"` | `"bar"` | Visual style variant |
+| `label` | `string` | — | Optional label text |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "progress-1",
+      "type": "progress_bar",
+      "props": {
+        "value": 75,
+        "variant": "bar",
+        "label": "Upload Progress"
+      }
+    },
+    {
+      "id": "progress-2",
+      "type": "progress_bar",
+      "props": {
+        "value": 50,
+        "variant": "circle",
+        "label": "50%"
+      }
+    },
+    {
+      "id": "progress-3",
+      "type": "progress_bar",
+      "props": {
+        "value": 100,
+        "variant": "bar"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Progress Bar displays progress as a percentage (0-100)
+- Bar variant shows a filled horizontal track
+- Circle variant shows percentage in a circular ring
+- Label is optional and can display additional context
+- Use for loading states, upload progress, or completion tracking

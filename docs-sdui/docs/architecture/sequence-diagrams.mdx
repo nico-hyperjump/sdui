@@ -1,0 +1,235 @@
+---
+title: Sequence Diagrams
+description: Visual interaction flows for key system operations
+---
+
+This page provides detailed sequence diagrams for the platform's key operations.
+
+## Screen Fetch (Mobile SDK)
+
+The complete flow when a mobile screen fetches its layout from the server:
+
+<Mermaid
+  chart="
+sequenceDiagram;
+  participant App as Mobile App;
+  participant SDK as SDUI SDK;
+  participant Cache as Cache Manager;
+  participant API as SDUI Server;
+  participant Auth as API Key Auth;
+  participant Resolver as Screen Resolver;
+  participant DB as SQLite DB;
+  participant ABSvc as A/B Test Service;
+  App->>SDK: useSduiScreen(home);
+  SDK->>Cache: get(home:brand_a:prepaid:user123);
+  alt Cache hit;
+  Cache-->>SDK: Cached SduiScreen;
+  else Cache miss;
+  Cache-->>SDK: null;
+  SDK->>API: GET /api/v1/screens/home;
+  API->>Auth: Validate X-API-Key;
+  Auth->>DB: Lookup hashed key;
+  DB-->>Auth: ApiKey record;
+  Auth-->>API: brand = brand_a;
+  API->>Resolver: resolve(home, brand_a, prepaid, user123);
+  Resolver->>DB: SELECT screen;
+  alt Segment screen found;
+  DB-->>Resolver: Screen with components;
+  else Fallback to default;
+  DB-->>Resolver: null;
+  Resolver->>DB: SELECT default screen;
+  DB-->>Resolver: Default screen;
+  end;
+  Resolver->>ABSvc: checkActiveTest(home, brand_a, user123);
+  alt Active A/B test;
+  ABSvc->>DB: SELECT active ab_test;
+  DB-->>ABSvc: AbTest with variants;
+  ABSvc-->>Resolver: Variant components;
+  Note over Resolver: Replace screen components with variant;
+  else No active test;
+  ABSvc-->>Resolver: null;
+  end;
+  Resolver-->>API: Resolved SduiScreen;
+  API-->>SDK: JSON response;
+  SDK->>Cache: set(home:brand_a:prepaid:user123, screen);
+  end;
+  SDK-->>App: screen, loading, error;
+  App->>App: SduiRenderer renders component tree;
+"
+/>
+
+## CMS Admin Login
+
+The authentication flow for CMS administrators:
+
+<Mermaid
+  chart="
+sequenceDiagram;
+participant Admin as CMS Admin;
+participant CMS as CMS Frontend;
+participant API as CMS API;
+participant DB as SQLite DB;
+Admin->>CMS: Enter email + password;
+CMS->>API: POST /api/cms/auth/login;
+API->>DB: SELECT admin_user WHERE email;
+DB-->>API: AdminUser with passwordHash;
+API->>API: Verify password hash;
+alt Valid credentials;
+API->>API: Sign JWT;
+API-->>CMS: 200 OK + JWT token;
+CMS->>CMS: Store token in localStorage;
+CMS-->>Admin: Redirect to dashboard;
+else Invalid credentials;
+API-->>CMS: 401 Unauthorized;
+CMS-->>Admin: Show error message;
+end;
+Note over Admin,CMS: Subsequent requests;
+CMS->>API: GET /api/cms/screens with Bearer JWT;
+API->>API: Verify JWT signature;
+API-->>CMS: Screen list;"
+/>
+
+## Screen Publishing
+
+The flow when a CMS admin publishes a screen update:
+
+<Mermaid
+  chart="
+sequenceDiagram;
+participant Admin as CMS Admin;
+participant CMS as CMS Frontend;
+participant API as CMS API;
+participant DB as SQLite DB;
+participant SvcCache as Server Cache;
+participant Mobile as Mobile App;
+participant SDK as SDUI SDK;
+Admin->>CMS: Edit screen components;
+CMS->>API: PUT /api/cms/screens/:id;
+API->>DB: UPDATE screen SET components;
+DB-->>API: Updated screen;
+API-->>CMS: 200 OK;
+Admin->>CMS: Click Publish;
+CMS->>API: POST /api/cms/screens/:id/publish;
+API->>DB: UPDATE screen SET published = true;
+DB-->>API: Published screen;
+API->>SvcCache: Invalidate cache for screen;
+API-->>CMS: 200 OK;
+CMS-->>Admin: Show success toast;
+Note over Mobile,SDK: Later - mobile user opens screen;
+Mobile->>SDK: useSduiScreen(home);
+SDK->>API: GET /api/v1/screens/home;
+API->>DB: SELECT published screen;
+DB-->>API: Updated screen data;
+API-->>SDK: New UI schema;
+SDK-->>Mobile: Render updated UI;"
+/>
+
+## A/B Test Lifecycle
+
+Creating, running, and concluding an A/B test:
+
+<Mermaid
+  chart="
+sequenceDiagram;
+participant Admin as CMS Admin;
+participant CMS as CMS Frontend;
+participant API as CMS API;
+participant DB as SQLite DB;
+participant Mobile as Mobile App;
+participant SDK as SDUI SDK;
+Note over Admin,DB: Phase 1 - Create Test;
+Admin->>CMS: Configure A/B test;
+CMS->>API: POST /api/cms/ab-tests;
+API->>DB: INSERT ab_test + ab_test_variants;
+DB-->>API: Created test (inactive);
+API-->>CMS: Test created;
+Note over Admin,DB: Phase 2 - Activate;
+Admin->>CMS: Click Activate;
+CMS->>API: POST /api/cms/ab-tests/:id/activate;
+API->>DB: UPDATE ab_test SET active = true;
+API-->>CMS: Test activated;
+Note over Mobile,SDK: Phase 3 - Users get variants;
+Mobile->>SDK: useSduiScreen(home);
+SDK->>API: GET /api/v1/screens/home?user_id=user_A;
+API->>API: hash(user_A + testId) mod 100 = 35;
+Note over API: 35 < 50 so assign Variant A;
+API-->>SDK: Screen with Variant A components;
+SDK-->>Mobile: Render Variant A layout;
+Mobile->>SDK: useSduiScreen(home);
+SDK->>API: GET /api/v1/screens/home?user_id=user_B;
+API->>API: hash(user_B + testId) mod 100 = 72;
+Note over API: 72 >= 50 so assign Variant B;
+API-->>SDK: Screen with Variant B components;
+SDK-->>Mobile: Render Variant B layout;
+Note over Admin,DB: Phase 4 - Deactivate;
+Admin->>CMS: Review analytics then deactivate test;
+CMS->>API: POST /api/cms/ab-tests/:id/deactivate;
+API->>DB: UPDATE ab_test SET active = false;
+API-->>CMS: Test deactivated;
+Note over Mobile: All users now see default screen;"
+/>
+
+## Feature Flag Toggle
+
+Toggling a feature flag from the CMS and its effect on mobile apps:
+
+<Mermaid
+  chart="
+sequenceDiagram;
+participant Admin as CMS Admin;
+participant CMS as CMS Frontend;
+participant API as CMS API;
+participant DB as SQLite DB;
+participant Mobile as Mobile App;
+participant SDK as SDUI SDK;
+Admin->>CMS: Toggle eSIM Support ON for Brand A;
+CMS->>API: PATCH /api/cms/feature-flags/:id;
+API->>DB: UPDATE feature_flag SET brandA = true;
+DB-->>API: Updated flag;
+API-->>CMS: 200 OK;
+Note over Mobile,SDK: Brand A user fetches config;
+Mobile->>SDK: SduiProvider fetches config;
+SDK->>API: GET /api/v1/config/brand_a;
+API->>DB: SELECT feature_flags;
+API->>API: Evaluate flags for brand_a;
+Note over API: eSIM Support brandA is true = enabled;
+API-->>SDK: BrandConfig with esim_support true;
+SDK-->>Mobile: Feature available in UI;
+Note over Mobile,SDK: Brand B user fetches config;
+Mobile->>SDK: SduiProvider fetches config;
+SDK->>API: GET /api/v1/config/brand_b;
+API->>DB: SELECT feature_flags;
+API->>API: Evaluate flags for brand_b;
+Note over API: eSIM Support brandB is false = disabled;
+API-->>SDK: BrandConfig with esim_support false;
+SDK-->>Mobile: Feature hidden in UI;"
+/>
+
+## Analytics Event Tracking
+
+How user interactions are tracked and surfaced:
+
+<Mermaid
+  chart="
+sequenceDiagram;
+participant User as User;
+participant App as Mobile App;
+participant Hook as useAnalytics;
+participant Client as SduiClient;
+participant API as SDUI Server;
+participant DB as SQLite DB;
+participant CMS as CMS Dashboard;
+User->>App: Tap Explore Plans button;
+App->>Hook: trackButtonClick(hero_cta, navigate);
+Hook->>Client: POST /api/v1/analytics/event;
+Note over Client: Payload eventType brand userId screenId metadata;
+Client->>API: POST /api/v1/analytics/event;
+API->>DB: INSERT analytics_event;
+DB-->>API: OK;
+API-->>Client: 200 OK;
+Note over CMS,DB: Admin views analytics;
+CMS->>API: GET /api/cms/analytics/summary;
+API->>DB: Aggregate event counts;
+DB-->>API: Summary data;
+API-->>CMS: Event counts types recent log;"
+/>

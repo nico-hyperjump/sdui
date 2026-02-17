@@ -1,0 +1,57 @@
+---
+title: Button
+description: Tappable button
+---
+
+# Button
+
+Component that renders a tappable button with styled accent background. Use Button for primary actions, navigation, or user interactions.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `label` | `string` | `"Button"` | Button text label |
+| `title` | `string` | `"Button"` | Alternative prop name for label |
+| `text` | `string` | `"Button"` | Alternative prop name for label |
+| `action` | `object` | — | Action configuration (navigate, webview, custom) |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "button-1",
+      "type": "button",
+      "props": {
+        "label": "Click Me",
+        "action": {
+          "type": "navigate",
+          "screen": "next-screen"
+        }
+      }
+    },
+    {
+      "id": "button-2",
+      "type": "button",
+      "props": {
+        "title": "Open Webview",
+        "action": {
+          "type": "webview",
+          "url": "https://example.com"
+        }
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Button supports `label`, `title`, or `text` props for button text
+- Default label is "Button" if none provided
+- Supports action types: navigate, webview, and custom actions
+- Styled with accent background color

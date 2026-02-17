@@ -1,0 +1,52 @@
+---
+title: Divider
+description: Horizontal divider line
+---
+
+# Divider
+
+Component that renders a thin horizontal separator line between sections. Use Divider to visually separate content areas.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `thickness` | `number` | `1` | Line thickness in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "Section 1"
+      }
+    },
+    {
+      "id": "divider-1",
+      "type": "divider",
+      "props": {
+        "thickness": 1
+      }
+    },
+    {
+      "id": "text-2",
+      "type": "text",
+      "props": {
+        "content": "Section 2"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Divider creates a horizontal line separator
+- Thickness defaults to 1 pixel
+- Use Divider to separate logical sections of content

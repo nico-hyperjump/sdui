@@ -1,0 +1,75 @@
+---
+title: Accordion
+description: Expandable section
+---
+
+# Accordion
+
+Expandable section component that displays a header with an arrow indicator. Tapping the header toggles the visibility of children content. Arrow indicator shows the expanded/collapsed state. Ideal for FAQs, product details, settings, or any collapsible content.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `title` | `string` | — | Header text displayed in the accordion |
+| `expanded` | `boolean` | `false` | Whether the accordion is initially expanded |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "accordion-1",
+      "type": "accordion",
+      "props": {
+        "title": "Frequently Asked Questions",
+        "expanded": false
+      },
+      "children": [
+        {
+          "id": "content-1",
+          "type": "text",
+          "props": {
+            "content": "This is the answer to the question."
+          }
+        }
+      ]
+    },
+    {
+      "id": "accordion-2",
+      "type": "accordion",
+      "props": {
+        "title": "Product Details",
+        "expanded": true
+      },
+      "children": [
+        {
+          "id": "content-2",
+          "type": "stack",
+          "children": [
+            {
+              "id": "text-2",
+              "type": "text",
+              "props": {
+                "content": "Detailed product information here."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Accordion displays an expandable section with a header
+- Tap header to toggle children visibility
+- Arrow indicator shows expanded/collapsed state
+- Default expanded state is false (collapsed)
+- Ideal for FAQs, product details, settings, collapsible content
+- Children are hidden when collapsed and shown when expanded

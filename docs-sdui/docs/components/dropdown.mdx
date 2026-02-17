@@ -1,0 +1,61 @@
+---
+title: Dropdown
+description: Select dropdown
+---
+
+# Dropdown
+
+Select dropdown component that displays a menu of options when tapped. Use Dropdown for form selections, filters, or any single-choice selection needs.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `label` | `string` | — | Label text displayed above the dropdown |
+| `options` | `array` | — | Array of option objects with `label` and `value` properties |
+| `selectedValue` | `string` | — | Currently selected option value |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "dropdown-1",
+      "type": "dropdown",
+      "props": {
+        "label": "Country",
+        "options": [
+          { "label": "United States", "value": "us" },
+          { "label": "Canada", "value": "ca" },
+          { "label": "Mexico", "value": "mx" }
+        ],
+        "selectedValue": "us"
+      }
+    },
+    {
+      "id": "dropdown-2",
+      "type": "dropdown",
+      "props": {
+        "label": "Sort By",
+        "options": [
+          { "label": "Price: Low to High", "value": "price_asc" },
+          { "label": "Price: High to Low", "value": "price_desc" },
+          { "label": "Newest First", "value": "newest" }
+        ],
+        "selectedValue": "price_asc"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Dropdown opens a menu of options when tapped
+- Options array must contain objects with `label` and `value` properties
+- Selected option text is displayed in the dropdown
+- Use for form selections, filters, and single-choice selections
+- Shows the label of the selected value when closed

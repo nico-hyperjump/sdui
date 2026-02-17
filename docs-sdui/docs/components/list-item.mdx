@@ -1,0 +1,56 @@
+---
+title: List Item
+description: List row component
+---
+
+# List Item
+
+Standard list item component that displays a title with an optional subtitle. Use List Item for creating lists, menus, settings screens, and any row-based content.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `title` | `string` | — | Primary text displayed in the list item |
+| `subtitle` | `string` | — | Optional secondary text displayed below the title |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "list-item-1",
+      "type": "list_item",
+      "props": {
+        "title": "Settings",
+        "subtitle": "Manage app preferences"
+      }
+    },
+    {
+      "id": "list-item-2",
+      "type": "list_item",
+      "props": {
+        "title": "Profile"
+      }
+    },
+    {
+      "id": "list-item-3",
+      "type": "list_item",
+      "props": {
+        "title": "Notifications",
+        "subtitle": "Configure notification settings"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- List Item provides a standard row layout for lists
+- Subtitle is optional and displayed below the title when provided
+- Use for menus, settings screens, and any row-based content
+- Typically used within a scrollable container or list

@@ -1,0 +1,54 @@
+---
+title: Scroll View
+description: Scrollable container
+---
+
+# Scroll View
+
+Scrollable container component that wraps children in a scrollable area with themed background. Use Scroll View when content may exceed the available screen space.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| — | — | — | No custom props |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "scroll_view",
+  "children": [
+    {
+      "id": "stack-1",
+      "type": "stack",
+      "props": {
+        "gap": 16
+      },
+      "children": [
+        {
+          "id": "text-1",
+          "type": "text",
+          "props": {
+            "content": "Scrollable content"
+          }
+        },
+        {
+          "id": "text-2",
+          "type": "text",
+          "props": {
+            "content": "More content"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Scroll View automatically enables scrolling when content exceeds container height
+- Themed background is applied automatically
+- Use Scroll View as a top-level container for long-form content

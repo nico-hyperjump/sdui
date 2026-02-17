@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Screen {
+  id          String   @id @default(uuid())
+  screenId    String   @map("screen_id")
+  brand       String
+  segment     String?
+  components  String
+  overlays    String?
+  dataSources String?  @map("data_sources")
+  version     Int      @default(1)
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([screenId, brand, segment])
+  @@index([brand])
+  @@map("screens")
+}
+
+model FeatureFlag {
+  id                String  @id @default(uuid())
+  key               String  @unique
+  description       String
+  brandA            Boolean @default(false) @map("brand_a")
+  brandB            Boolean @default(false) @map("brand_b")
+  brandC            Boolean @default(false) @map("brand_c")
+  rolloutPercentage Int     @default(100) @map("rollout_percentage")
+
+  @@map("feature_flags")
+}
+
+model Theme {
+  id         String @id @default(uuid())
+  brand      String @unique
+  colors     String
+  typography String
+  assets     String
+
+  @@map("themes")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  eventType String   @map("event_type")
+  brand     String
+  userId    String?  @map("user_id")
+  screenId  String?  @map("screen_id")
+  payload   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([eventType])
+  @@index([brand])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
+
+model AbTest {
+  id        String          @id @default(uuid())
+  name      String
+  screenId  String          @map("screen_id")
+  brand     String
+  active    Boolean         @default(false)
+  createdAt DateTime        @default(now()) @map("created_at")
+  variants  AbTestVariant[]
+
+  @@index([screenId, brand])
+  @@map("ab_tests")
+}
+
+model AbTestVariant {
+  id         String @id @default(uuid())
+  testId     String @map("test_id")
+  name       String
+  percentage Int
+  components String
+  test       AbTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+  @@map("ab_test_variants")
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  label     String
+  brand     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("api_keys")
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admin_users")
+}

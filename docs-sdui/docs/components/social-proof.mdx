@@ -1,0 +1,71 @@
+---
+title: Social Proof
+description: Trust indicator
+---
+
+# Social Proof
+
+Component that displays trust indicators such as purchase counts, trending badges, or social validation messages. Shows icon plus text or formatted count. Use Social Proof to build trust, show popularity, or highlight social validation on product screens, checkout flows, or any screen requiring credibility indicators.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `text` | `string` | — | Text message to display |
+| `icon` | `string` | `"🔥"` | Icon emoji or symbol (defaults to fire emoji) |
+| `count` | `number` | — | Numeric count to display in formatted form |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "proof-1",
+      "type": "social_proof",
+      "props": {
+        "text": "people bought this",
+        "icon": "🔥",
+        "count": 1234
+      }
+    },
+    {
+      "id": "proof-2",
+      "type": "social_proof",
+      "props": {
+        "text": "Trending",
+        "icon": "⭐"
+      }
+    },
+    {
+      "id": "proof-3",
+      "type": "social_proof",
+      "props": {
+        "text": "reviews",
+        "count": 567
+      }
+    },
+    {
+      "id": "proof-4",
+      "type": "social_proof",
+      "props": {
+        "text": "Sold today",
+        "icon": "💯",
+        "count": 89
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Shows icon plus text or formatted count
+- Use for trust indicators, popularity displays, or social validation
+- Common use cases: "1,234 people bought this", "Trending", "Most popular"
+- Icon defaults to fire emoji (🔥) if not specified
+- Count is formatted with thousands separators (e.g., 1,234)
+- Can display text-only, count-only, or combined icon + text + count
+- Ideal for product screens, checkout flows, or any screen requiring credibility indicators

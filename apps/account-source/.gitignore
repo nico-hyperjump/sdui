@@ -1,0 +1,5 @@
+# Prisma generated client
+client/
+
+# SQLite dev database
+*.db

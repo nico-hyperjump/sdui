@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Offer {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       String
+  imageUrl    String?  @map("image_url")
+  badge       String?
+  brand       String
+  segment     String?
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([brand])
+  @@index([brand, segment])
+  @@map("offers")
+}
+
+model Banner {
+  id        String   @id @default(uuid())
+  title     String
+  subtitle  String?
+  imageUrl  String   @map("image_url")
+  action    String?
+  brand     String
+  segment   String?
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([brand])
+  @@index([brand, segment])
+  @@map("banners")
+}

@@ -1,0 +1,130 @@
+---
+title: Data Flow
+description: Request lifecycle, caching strategy, personalization, and A/B test resolution
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+This page explains how data moves through the SDUI Platform — from a mobile app requesting a screen to the final rendered UI on the device.
+
+## Screen Request Lifecycle
+
+When a mobile app screen loads, the following sequence occurs:
+
+<Mermaid chart="flowchart TD; A[Mobile App loads screen] --> B[SDK useSduiScreen]; B --> C{Cache hit?}; C -->|Yes| D[Return cached screen]; C -->|No| E[SDK Client GET /api/v1/screens/:id]; E --> F[Server API Key Auth]; F --> G[Server Screen Resolver]; G --> H{Active A/B test?}; H -->|Yes| I[Assign variant deterministically]; H -->|No| J{Segment-specific screen?}; I --> K[Return variant components]; J -->|Yes| L[Return segment screen]; J -->|No| M[Return default screen]; K --> N[SDK Cache response]; L --> N; M --> N; D --> O[SduiRenderer Render component tree]; N --> O; O --> P[Branded UI on device]" />
+
+### Step-by-Step
+
+1. **Screen hook fires** — The `useSduiScreen("home")` hook is called when a tab screen mounts
+2. **Cache check** — The SDK's `CacheManager` checks for a cached response (TTL-based)
+3. **API request** — On cache miss, the `SduiClient` sends `GET /api/v1/screens/home?brand=brand_a&user_segment=prepaid&user_id=user123`
+4. **Authentication** — The `api-key-auth` middleware validates the `X-API-Key` header and extracts the associated brand
+5. **Screen resolution** — The `screen-resolver` service queries the database:
+   - First tries to find a screen matching `(screenId, brand, segment)`
+   - Falls back to `(screenId, brand, null)` if no segment-specific screen exists
+6. **A/B test check** — If an active A/B test exists for this screen + brand:
+   - The user is assigned a variant using `hash(userId + testId) % 100`
+   - The variant's component tree replaces the screen's default components
+7. **Response** — The server returns the full `SduiScreen` JSON with components, metadata, and schema version
+8. **Caching** — The SDK caches the response with a configurable TTL
+9. **Rendering** — `SduiRenderer` walks the component tree, resolves each component type via the registry, and renders the corresponding React Native component
+
+## Caching Strategy
+
+The platform uses a two-tier caching approach:
+
+### SDK Cache (Client-Side)
+
+- **Type**: In-memory `Map` with TTL
+- **Key**: Composite of `screenId + brand + segment + userId`
+- **TTL**: Configurable per instance (default varies)
+- **Invalidation**: Cache entries expire after TTL; manual clear via `CacheManager`
+- **Purpose**: Reduce redundant API calls for screens that don't change frequently
+
+### Server Cache (Service-Side)
+
+- **Type**: In-memory `Map<string, UISchema>`
+- **Scope**: Per-process (not shared across instances)
+- **Invalidation**: CMS publish/unpublish actions clear relevant cache entries
+- **Purpose**: Avoid database queries for frequently requested screens
+
+<Callout type="warn">
+  Both caches are in-memory only. A server restart clears the server cache, and
+  an app restart clears the SDK cache. This is acceptable for the PoC scope.
+</Callout>
+
+## Brand Config Flow
+
+Brand configuration (theme + feature flags) is fetched separately from screens:
+
+<Mermaid chart="flowchart LR; App[Mobile App starts] --> Provider[SduiProvider mounts]; Provider --> Fetch[GET /api/v1/config/:brand]; Fetch --> Server[Server resolves config]; Server --> Theme[Fetch theme from DB]; Server --> Flags[Evaluate feature flags]; Theme --> Response[Return BrandConfig]; Flags --> Response; Response --> ThemeCtx[ThemeProvider context]; ThemeCtx --> Components[All components use theme]" />
+
+### Feature Flag Evaluation
+
+Feature flags are evaluated at config-fetch time:
+
+1. All flags are loaded from the database
+2. Each flag has boolean toggles per brand (`brandA`, `brandB`, `brandC`)
+3. If a flag has a `rolloutPercentage` < 100, a deterministic bucket is computed from `hash(userId + flagKey) % 100`
+4. The evaluated result (enabled/disabled) is returned to the client
+
+This means the client receives a simple `Record<string, boolean>` of resolved flags — it never sees rollout percentages or per-brand toggle logic.
+
+## Personalization Flow
+
+Content personalization is driven by the **user segment** parameter:
+
+<Mermaid chart="flowchart TD; Request[Screen request with segment=prepaid] --> Resolver[Screen Resolver]; Resolver --> Query1[Query screenId + brand + segment]; Query1 --> Found{Found?}; Found -->|Yes| Return1[Return segment-specific screen]; Found -->|No| Query2[Query screenId + brand + null]; Query2 --> Return2[Return default screen]" />
+
+### Segment Types
+
+| Segment    | Description               | Example Content                         |
+| ---------- | ------------------------- | --------------------------------------- |
+| `prepaid`  | Prepaid mobile users      | Data bundles, top-up offers, recharge   |
+| `postpaid` | Postpaid contract users   | Device upgrades, family plans, bill pay |
+| `business` | Business/enterprise users | Multi-line plans, enterprise support    |
+| _(null)_   | Default / unknown         | Generic offers applicable to all users  |
+
+The CMS allows creating screen variants per segment. When a segment-specific screen doesn't exist, the system gracefully falls back to the default (null segment) screen.
+
+## A/B Test Assignment
+
+A/B tests use **deterministic variant assignment** to ensure users always see the same variant:
+
+<Mermaid chart="flowchart TD; Input[userId + testId] --> Hash[Compute hash]; Hash --> Bucket[bucket = hash mod 100]; Bucket --> Check{bucket < variant A percent?}; Check -->|Yes| VarA[Assign Variant A]; Check -->|No| VarB[Assign Variant B]; VarA --> Replace[Replace screen components with variant]; VarB --> Replace" />
+
+### Key Properties
+
+- **Deterministic**: Same `userId + testId` always produces the same variant
+- **No state needed**: No database record of which user got which variant — it's computed on each request
+- **Variant components**: Each variant stores a complete component tree that replaces the screen's default components
+- **Analytics**: The assigned variant is included in analytics events for tracking
+
+## Analytics Flow
+
+Analytics events flow from the mobile app to the server:
+
+<Mermaid chart="flowchart LR; App[User interaction] --> Hook[useAnalytics trackEvent]; Hook --> Client[SduiClient POST /api/v1/analytics/event]; Client --> Server[Server validates event]; Server --> DB[(SQLite analytics_events)]; DB --> CMS[CMS Analytics Dashboard]" />
+
+### Event Types
+
+| Event                | Trigger                   | Payload                    |
+| -------------------- | ------------------------- | -------------------------- |
+| `screen_view`        | Screen loads              | screenId, brand, segment   |
+| `impression`         | Component becomes visible | componentId, componentType |
+| `button_click`       | User taps a button/card   | componentId, action        |
+| `ab_test_assignment` | User assigned to variant  | testId, variantName        |
+
+Events are stored in the `analytics_events` table and surfaced in the CMS analytics dashboard with summary counts and a recent events log.
+
+## CMS Publish Flow
+
+When a CMS admin publishes a screen update, the changes propagate to mobile apps:
+
+<Mermaid chart="flowchart TD; Admin[Admin edits screen in CMS] --> Save[Save via CMS API]; Save --> DB[Update database record]; DB --> Publish[Toggle published = true]; Publish --> Cache[Invalidate server cache]; Cache --> Next[Next mobile request]; Next --> Fresh[Fresh data served from DB]; Fresh --> App[Updated UI on device]" />
+
+<Callout type="info">
+  There is no push notification to mobile devices. Updates are pulled on the
+  next screen fetch. The SDK's cache TTL determines the maximum delay before a
+  user sees updated content.
+</Callout>

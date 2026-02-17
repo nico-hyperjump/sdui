@@ -1,0 +1,339 @@
+---
+title: Development Guide
+description: Setting up the development environment, running services, testing, and project conventions
+icon: Code
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+
+This guide covers everything you need to set up, run, and contribute to the SDUI Platform.
+
+## Prerequisites
+
+| Tool         | Version | Purpose                           |
+| ------------ | ------- | --------------------------------- |
+| **Node.js**  | >= 20   | Runtime                           |
+| **pnpm**     | 10.4.1  | Package manager                   |
+| **Expo CLI** | Latest  | Mobile app development (optional) |
+
+### Enable pnpm via Corepack
+
+```bash
+corepack enable && corepack prepare pnpm@10.4.1 --activate
+```
+
+## Quick Start
+
+<Steps>
+<Step>
+
+### Clone and install
+
+```bash
+git clone <repository-url>
+cd xl-modula
+pnpm install
+```
+
+If you see a warning about `better-sqlite3` build scripts:
+
+```bash
+pnpm approve-builds    # Select better-sqlite3
+pnpm install           # Run again
+```
+
+</Step>
+<Step>
+
+### Start the full platform
+
+```bash
+pnpm dev:sdui
+```
+
+This single command (powered by Turborepo) does everything:
+
+1. Generates the Prisma client
+2. Applies database migrations
+3. Seeds demo data (3 brands, screens, flags, themes, A/B tests, API keys, admin user)
+4. Starts the **SDUI API server** on `http://localhost:3001`
+5. Starts the **CMS admin panel** on `http://localhost:5173/admin`
+
+</Step>
+<Step>
+
+### Verify it works
+
+```bash
+# Health check
+curl http://localhost:3001/health
+
+# Fetch a screen
+curl "http://localhost:3001/api/v1/screens/home?brand=brand_a" \
+  -H "X-API-Key: sk_brand_a_demo_key"
+
+# CMS login
+curl -X POST http://localhost:3001/api/cms/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@telco-poc.com","password":"admin123"}'
+```
+
+</Step>
+<Step>
+
+### Start the mobile app (optional)
+
+```bash
+# Default (Brand A)
+pnpm --filter @workspace/mobile dev
+
+# Specific brand
+cd apps/mobile
+BRAND=brand_b npx expo start
+```
+
+</Step>
+</Steps>
+
+## Running Individual Services
+
+If you prefer to start services separately:
+
+```bash
+# Database setup only (generate + migrate + seed)
+pnpm --filter @workspace/sdui-database db:setup
+
+# API server only
+pnpm --filter @workspace/server dev
+
+# CMS frontend only
+pnpm --filter @workspace/cms dev
+```
+
+### CMS Environment
+
+If the CMS API is on a different origin:
+
+```bash
+# packages/cms/.env
+VITE_CMS_API_URL=http://localhost:3001/api/cms
+```
+
+## Project Structure
+
+<Files>
+  <Folder name="packages" defaultOpen>
+    <Folder name="sdui-schema">
+      <File name="src/ui-schema.ts" />
+      <File name="src/api-contracts.ts" />
+      <File name="src/brand-config.ts" />
+      <File name="src/feature-flags.ts" />
+      <File name="src/analytics.ts" />
+      <File name="src/ab-test.ts" />
+    </Folder>
+    <Folder name="sdui-database">
+      <File name="prisma/schema.prisma" />
+      <File name="src/client.ts" />
+      <File name="src/seed.ts" />
+    </Folder>
+    <Folder name="sdui-service">
+      <File name="src/index.ts" />
+      <File name="src/routes/" />
+      <File name="src/services/" />
+      <File name="src/middleware/" />
+    </Folder>
+    <Folder name="sdui-cms-service">
+      <File name="src/index.ts" />
+      <File name="src/routes/" />
+      <File name="src/middleware/" />
+    </Folder>
+    <Folder name="sdui-sdk">
+      <File name="src/client.ts" />
+      <File name="src/renderer.tsx" />
+      <File name="src/component-registry.ts" />
+      <File name="src/hooks/" />
+      <File name="src/providers/" />
+    </Folder>
+    <Folder name="cms">
+      <File name="src/pages/" />
+      <File name="src/components/" />
+      <File name="src/api-client.ts" />
+    </Folder>
+  </Folder>
+  <Folder name="apps" defaultOpen>
+    <Folder name="server">
+      <File name="src/index.ts" />
+    </Folder>
+    <Folder name="mobile">
+      <File name="app/_layout.tsx" />
+      <File name="app/(tabs)/" />
+      <File name="components/sdui/" />
+      <File name="constants/brands.ts" />
+    </Folder>
+  </Folder>
+</Files>
+
+### Package Descriptions
+
+| Package              | Responsibility                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| **sdui-schema**      | Zod schemas and TypeScript types — the shared contract between all packages        |
+| **sdui-database**    | Prisma client, migrations, and seed script for SQLite                              |
+| **sdui-service**     | Public API routes (screen resolution, config, offers, analytics) with API key auth |
+| **sdui-cms-service** | CMS API routes (CRUD screens, flags, themes, A/B tests) with JWT auth              |
+| **sdui-sdk**         | React Native SDK — client, renderer, hooks, providers, component registry          |
+| **cms**              | React SPA for the admin panel — pages for screens, flags, themes, analytics        |
+| **apps/server**      | Hono server that mounts both API services and adds middleware                      |
+| **apps/mobile**      | Expo app with tab navigation, SDUI rendering, and brand variant support            |
+
+## Database Management
+
+### Common Commands
+
+```bash
+# Full setup (generate + migrate + seed)
+pnpm --filter @workspace/sdui-database db:setup
+
+# Generate Prisma client only
+pnpm --filter @workspace/sdui-database db:generate
+
+# Run migrations
+pnpm --filter @workspace/sdui-database db:migrate:dev
+
+# Reset database (drop + migrate + seed)
+pnpm --filter @workspace/sdui-database db:reset
+
+# Seed data only
+pnpm --filter @workspace/sdui-database db:seed
+
+# Open Prisma Studio (visual DB browser)
+pnpm --filter @workspace/sdui-database db:studio
+```
+
+### Database Location
+
+The SQLite database file is stored at `packages/sdui-database/prisma/dev.db`. To reset completely, delete this file and re-run `db:setup`.
+
+## Testing
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests for a specific package
+pnpm --filter @workspace/sdui-schema test
+pnpm --filter @workspace/sdui-sdk test
+
+# Run tests in watch mode
+pnpm --filter @workspace/sdui-schema test -- --watch
+```
+
+Tests are co-located with source files as `.test.ts` files and use **Vitest** as the test runner.
+
+## Brand Configuration
+
+### Available Brands
+
+| Brand ID  | Name    | Colors                            | API Key               |
+| --------- | ------- | --------------------------------- | --------------------- |
+| `brand_a` | Premium | Navy `#003366` / Gold `#FFD700`   | `sk_brand_a_demo_key` |
+| `brand_b` | Youth   | Purple `#7B2CBF` / Lime `#00FF00` | `sk_brand_b_demo_key` |
+| `brand_c` | Value   | Orange `#FF6B35` / Teal `#4ECDC4` | `sk_brand_c_demo_key` |
+
+### Running Different Brands
+
+The mobile app reads the brand from environment variables or Expo constants:
+
+```bash
+# Brand A (default)
+pnpm --filter @workspace/mobile dev
+
+# Brand B
+cd apps/mobile && BRAND=brand_b npx expo start
+
+# Brand C
+cd apps/mobile && BRAND=brand_c npx expo start
+```
+
+Brand configuration (API key, service URL, brand ID) is resolved in `apps/mobile/lib/brand-config.ts`.
+
+## Coding Conventions
+
+### File Naming
+
+- Use **kebab-case** for all file names: `screen-resolver.ts`, `api-key-auth.ts`
+- Test files are co-located: `screen-resolver.test.ts`
+
+### TypeScript
+
+- Strict mode enabled across all packages
+- Zod schemas as the source of truth for types (infer types from schemas)
+- All functions should have JSDoc comments
+
+### API Routes
+
+- Built with **Hono** framework
+- Route handlers in `src/routes/` directories
+- Middleware in `src/middleware/` directories
+- Services (business logic) in `src/services/` directories
+
+### Package Exports
+
+Each package defines explicit exports in `package.json`:
+
+```json
+{
+  "exports": {
+    "./ui-schema": "./src/ui-schema.ts",
+    "./api-contracts": "./src/api-contracts.ts"
+  }
+}
+```
+
+Import from the specific export, not the package root:
+
+```ts
+import { SduiScreen } from "@workspace/sdui-schema/ui-schema";
+```
+
+## Troubleshooting
+
+### "better-sqlite3 build scripts ignored"
+
+```bash
+pnpm approve-builds   # Select better-sqlite3
+pnpm install          # Reinstall
+```
+
+### "Prisma client not generated"
+
+```bash
+pnpm --filter @workspace/sdui-database db:generate
+```
+
+### Database is empty or stale
+
+```bash
+pnpm --filter @workspace/sdui-database db:reset
+```
+
+### CMS can't connect to API
+
+Ensure the CMS `.env` file has the correct API URL:
+
+```bash
+echo "VITE_CMS_API_URL=http://localhost:3001/api/cms" > packages/cms/.env
+```
+
+### Mobile app shows blank screens
+
+1. Verify the API server is running: `curl http://localhost:3001/health`
+2. Check the API key matches the brand: Brand A requires `sk_brand_a_demo_key`
+3. Ensure screens are published in the CMS
+
+<Callout type="info">
+  When in doubt, reset everything: `pnpm --filter @workspace/sdui-database
+  db:reset && pnpm dev:sdui`
+</Callout>

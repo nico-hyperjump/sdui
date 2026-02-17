@@ -1,0 +1,311 @@
+---
+title: CMS Guide
+description: Using the CMS admin panel to manage screens, feature flags, themes, A/B tests, and analytics
+icon: Settings
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+The CMS admin panel is a React web application that allows administrators to manage all aspects of the SDUI platform — screens, feature flags, brand themes, A/B tests, analytics, and API keys.
+
+## Access
+
+| Detail       | Value                       |
+| ------------ | --------------------------- |
+| **URL**      | http://localhost:5173/admin |
+| **Email**    | `admin@telco-poc.com`       |
+| **Password** | `admin123`                  |
+
+## Dashboard
+
+After logging in, the dashboard provides quick links to all management areas:
+
+- **Screens** — Create and manage server-driven UI screens
+- **Feature Flags** — Toggle features per brand
+- **Themes** — Configure brand visual identity
+- **A/B Tests** — Set up and manage layout experiments
+- **Analytics** — View event summaries and recent activity
+- **API Keys** — Manage mobile SDK authentication keys
+
+## Managing Screens
+
+Screens are the core of the SDUI system. Each screen is a JSON document describing the component tree that the mobile app renders.
+
+### Screen Properties
+
+| Property       | Description                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| **Screen ID**  | Logical name (e.g., `home`, `plans`) — used by the mobile SDK to request screens                    |
+| **Brand**      | Which brand this screen belongs to (`brand_a`, `brand_b`, `brand_c`)                                |
+| **Segment**    | Optional user segment for personalization (`prepaid`, `postpaid`, `business`, or empty for default) |
+| **Components** | JSON array describing the UI component tree                                                         |
+| **Published**  | Whether the screen is live and returned by the API                                                  |
+| **Version**    | Auto-incrementing version number                                                                    |
+
+### Creating a Screen
+
+<Steps>
+<Step>
+
+### Navigate to Screens
+
+Click **Screens** in the sidebar navigation.
+
+</Step>
+<Step>
+
+### Click New Screen
+
+Click the "New Screen" button at the top of the screen list.
+
+</Step>
+<Step>
+
+### Fill in details
+
+- Enter a **Screen ID** (e.g., `promotions`)
+- Select a **Brand** from the dropdown
+- Optionally select a **Segment** for personalized variants
+
+</Step>
+<Step>
+
+### Define components
+
+Enter the component tree as JSON in the editor. Example:
+
+```json
+[
+  {
+    "id": "hero_1",
+    "type": "hero_banner",
+    "props": {
+      "title": "Black Friday Sale",
+      "subtitle": "50% off all plans",
+      "image_url": "https://picsum.photos/800/400",
+      "cta_text": "Shop Now",
+      "cta_action": {
+        "type": "navigate",
+        "screen": "plans"
+      }
+    }
+  },
+  {
+    "id": "offers_grid",
+    "type": "action_grid",
+    "props": {
+      "columns": 2,
+      "items": [
+        { "icon": "star", "label": "Top Deals" },
+        { "icon": "gift", "label": "Free Gifts" }
+      ]
+    }
+  }
+]
+```
+
+</Step>
+<Step>
+
+### Save and Publish
+
+Click **Save** to store the screen, then **Publish** to make it live. The screen will be returned by the API on the next mobile request.
+
+</Step>
+</Steps>
+
+### Editing a Screen
+
+1. Click on a screen in the list to open the editor
+2. Modify the JSON components
+3. Click **Save** — changes are saved but not live yet
+4. Click **Publish** to push changes live
+
+<Callout type="warn">
+  Unpublished screens are not returned by the public API. The mobile app will
+  show its cached version or a fallback until a published screen is available.
+</Callout>
+
+### Segment Variants
+
+To show different content to different user segments:
+
+1. Create a screen with the same **Screen ID** and **Brand** but a different **Segment**
+2. For example: `home` + `brand_a` + `prepaid` shows prepaid offers
+3. `home` + `brand_a` + `null` serves as the default fallback
+
+The server automatically resolves the best match based on the user's segment.
+
+## Managing Feature Flags
+
+Feature flags control which features are available in each brand's app.
+
+### Flag Properties
+
+| Property            | Description                                  |
+| ------------------- | -------------------------------------------- |
+| **Key**             | Unique identifier (e.g., `esim_support`)     |
+| **Description**     | Human-readable explanation                   |
+| **Brand A / B / C** | Toggle per brand (checkbox)                  |
+| **Rollout %**       | Percentage of users who see the flag (0–100) |
+
+### Toggling a Flag
+
+1. Navigate to **Feature Flags** in the sidebar
+2. Find the flag in the table
+3. Toggle the brand checkboxes to enable/disable per brand
+4. Adjust the rollout percentage if needed
+5. Changes take effect on the next mobile config fetch
+
+### Rollout Percentage
+
+When set to less than 100%, the flag is enabled only for a percentage of users:
+
+- **100%** — All users see the feature (default)
+- **50%** — Approximately half of users see the feature
+- **0%** — No users see the feature (regardless of brand toggles)
+
+The assignment is deterministic — the same user always gets the same result for the same flag.
+
+## Managing Themes
+
+Each brand has its own visual theme that controls the mobile app's appearance.
+
+### Theme Properties
+
+| Section        | Fields                                                    |
+| -------------- | --------------------------------------------------------- |
+| **Colors**     | Primary, secondary, accent, background, text (hex values) |
+| **Typography** | Font family, heading weight, body weight                  |
+| **Assets**     | Logo URL, app icon URL                                    |
+
+### Updating a Theme
+
+1. Navigate to **Themes** in the sidebar
+2. Select a brand
+3. Edit the color hex values, typography settings, or asset URLs
+4. Save changes
+
+Theme changes are reflected in the mobile app on the next config fetch (typically when the app starts or the user pulls to refresh).
+
+### Brand Themes Reference
+
+| Brand                 | Primary            | Secondary        | Target                   |
+| --------------------- | ------------------ | ---------------- | ------------------------ |
+| **Brand A (Premium)** | `#003366` (Navy)   | `#FFD700` (Gold) | Business, high-value     |
+| **Brand B (Youth)**   | `#7B2CBF` (Purple) | `#00FF00` (Lime) | Young adults, data-heavy |
+| **Brand C (Value)**   | `#FF6B35` (Orange) | `#4ECDC4` (Teal) | Price-conscious families |
+
+## Managing A/B Tests
+
+A/B tests allow you to show different screen layouts to different users and measure which performs better.
+
+### Creating a Test
+
+<Steps>
+<Step>
+
+### Navigate to A/B Tests
+
+Click **A/B Tests** in the sidebar.
+
+</Step>
+<Step>
+
+### Create New Test
+
+Click "New Test" and fill in:
+
+- **Name** — descriptive name (e.g., "Home Layout Test Q1")
+- **Screen ID** — which screen to target (e.g., `home`)
+- **Brand** — which brand to test on
+
+</Step>
+<Step>
+
+### Define Variants
+
+Add two or more variants with:
+
+- **Variant name** (e.g., "Hero First", "Actions First")
+- **Percentage** — traffic allocation (must sum to 100%)
+- **Components** — the component tree for this variant
+
+</Step>
+<Step>
+
+### Activate
+
+Click **Activate** to start the test. Users will now be assigned to variants deterministically.
+
+</Step>
+</Steps>
+
+### Test Behavior
+
+- Users are assigned to variants using a deterministic hash of `userId + testId`
+- The same user always sees the same variant
+- Variant assignment is tracked as an analytics event (`ab_test_assignment`)
+- Only one test can be active per screen + brand combination at a time
+
+### Concluding a Test
+
+1. Review analytics to compare variant performance
+2. Click **Deactivate** to stop the test
+3. All users will see the default screen again
+4. Update the default screen with the winning variant's layout if desired
+
+## Analytics Dashboard
+
+The analytics page shows a summary of all tracked events.
+
+### Available Metrics
+
+| Metric             | Description                                                            |
+| ------------------ | ---------------------------------------------------------------------- |
+| **Total Events**   | Overall event count                                                    |
+| **Events by Type** | Breakdown by screen_view, button_click, impression, ab_test_assignment |
+| **Recent Events**  | Last 100 events with timestamp, type, brand, user, and screen          |
+
+### Using Analytics
+
+- Monitor which screens are most viewed
+- Track button click rates to measure CTA effectiveness
+- Verify A/B test variant distribution (should be close to configured percentages)
+- Debug issues by checking recent event logs
+
+## Managing API Keys
+
+API keys authenticate mobile SDK requests to the server.
+
+### Key Properties
+
+| Property   | Description                                |
+| ---------- | ------------------------------------------ |
+| **Label**  | Human-readable name for the key            |
+| **Brand**  | Brand scope (specific brand or all brands) |
+| **Active** | Whether the key is currently valid         |
+
+### Creating a Key
+
+1. Navigate to **API Keys** in the sidebar
+2. Click "Create Key"
+3. Enter a label and select the brand scope
+4. The full key is displayed **once** — copy and store it securely
+
+<Callout type="warn">
+  API keys are hashed before storage. The full key cannot be retrieved after
+  creation. If lost, create a new key and update the mobile app configuration.
+</Callout>
+
+### Pre-Seeded Keys
+
+For development, these keys are available out of the box:
+
+| Key                     | Scope      |
+| ----------------------- | ---------- |
+| `sk_brand_a_demo_key`   | Brand A    |
+| `sk_brand_b_demo_key`   | Brand B    |
+| `sk_brand_c_demo_key`   | Brand C    |
+| `sk_all_brands_dev_key` | All brands |

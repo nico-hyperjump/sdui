@@ -1,0 +1,109 @@
+---
+title: Overview
+description: System overview, problem statement, and the SDUI solution
+icon: BookOpen
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+## Problem Statement
+
+Significant challenges managing multiple mobile apps across multiple brands, for example, 3 brands x 2 platforms:
+
+- **6 separate codebases** with duplicated functionality across brands
+- **App store dependency** causing 1–2 week delays for simple UI updates
+- **High maintenance costs** from multiple development teams
+- **Inconsistent user experiences** across brands
+- **Slow time-to-market** for new features and promotions
+
+## The SDUI Solution
+
+The Server-Driven UI (SDUI) Platform solves these problems with a hybrid architecture combining:
+
+1. **Shared Codebase** — A single React Native + Expo monorepo that builds all 6 apps (3 brands x iOS/Android)
+2. **Server-Driven Layouts** — Screen structures defined as JSON schemas on the server, rendered dynamically by the mobile app
+3. **CMS for Business Users** — A web admin panel where non-technical users can modify content, toggle features, and run A/B tests
+4. **Over-The-Air Updates** — Code changes pushed to devices without app store submissions via Expo Updates
+
+## How It Works
+
+The platform works on a simple principle: **the server decides what the app looks like, and the app knows how to render it**.
+
+<Mermaid chart="flowchart LR; CMS[CMS Admin Panel] -->|Edit screens, flags, themes| API[SDUI Server]; API -->|JSON UI Schema| SDK[Mobile SDK]; SDK -->|Renders components| App[Branded Mobile App]; DB[(SQLite Database)] --> API" />
+
+### The UI Schema
+
+Instead of hardcoding screen layouts, each screen is described as a **JSON document** (UI schema) that specifies:
+
+- **Which components** to display (hero banners, cards, grids, etc.)
+- **Component properties** (text, images, colors, actions)
+- **Layout hierarchy** (nesting and ordering)
+- **Actions** to trigger (navigation, webviews, custom handlers)
+- **Conditions** for when to show content (brand, segment, feature flags)
+- **Analytics metadata** for tracking impressions and clicks
+
+### Brand Differentiation
+
+All three brands share the same component library but each has its own:
+
+| Brand   | Name    | Theme         | Target Audience                   |
+| ------- | ------- | ------------- | --------------------------------- |
+| Brand A | Premium | Navy & Gold   | Business, high-value postpaid     |
+| Brand B | Youth   | Purple & Lime | Young adults, prepaid, data-heavy |
+| Brand C | Value   | Orange & Teal | Price-conscious families          |
+
+Themes are stored in the database and applied at runtime — changing a brand's colors, typography, or assets requires no code changes.
+
+### Feature Flags
+
+Features can be toggled independently per brand with rollout percentage control:
+
+- **eSIM Support** — enabled for Brand A only
+- **Chat Support** — gradually rolling out to 50% of Brand B users
+- **Biometric Login** — enabled for all brands
+
+### A/B Testing
+
+The platform supports deterministic A/B testing where:
+
+- Tests target a specific screen + brand combination
+- Users are assigned to variants using a hash of their user ID and test ID (deterministic)
+- Each variant can completely replace the screen's component tree
+- Test results are tracked via the built-in analytics system
+
+### Personalization
+
+Content is personalized based on user segments:
+
+- **Prepaid** users see data bundles and top-up offers
+- **Postpaid** users see device upgrades and family plans
+- **Business** users see enterprise plans and multi-line deals
+
+The server resolves the correct screen variant based on the brand, segment, and active A/B tests for each request.
+
+## Technology Stack
+
+| Layer      | Technology              | Why                                               |
+| ---------- | ----------------------- | ------------------------------------------------- |
+| Mobile     | React Native + Expo     | Cross-platform, OTA built-in, fast development    |
+| Server     | Hono (Node.js)          | Lightweight, TypeScript-native, fast              |
+| Database   | SQLite (Prisma)         | File-based, no infrastructure, sufficient for PoC |
+| CMS        | React + Vite + Tailwind | Fast build, modern UI, familiar stack             |
+| OTA        | Expo Updates            | Built into Expo, zero additional setup            |
+| Validation | Zod                     | Runtime type safety for schemas and API contracts |
+
+<Callout type="info">
+  The entire platform runs on a **single server**. The API, CMS backend, and
+  static CMS frontend are all served from one Node.js process — ideal for a PoC
+  that can later scale to separate services.
+</Callout>
+
+## Success Criteria
+
+The PoC demonstrates:
+
+1. Three branded apps sharing over 80% of codebase
+2. UI updates deployed in under 5 minutes without app store submission
+3. Brand-specific theming from shared components
+4. Feature flags controlling functionality per brand
+5. Non-technical users modifying UI via the CMS

@@ -1,0 +1,39 @@
+---
+title: Web View
+description: Embedded web content
+---
+
+# Web View
+
+Component that displays embedded web content using a WebView. Use Web View to display web pages, HTML content, or external websites within your app.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `url` | `string` | — | URL of the web page to display |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "webview-1",
+      "type": "web_view",
+      "props": {
+        "url": "https://example.com"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Web View displays embedded web content
+- In production, uses react-native-webview for rendering
+- Use to display web pages or HTML content within the app
+- URL must be a valid HTTP/HTTPS address
