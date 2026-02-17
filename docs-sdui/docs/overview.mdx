@@ -29,28 +29,48 @@ The Server-Driven UI (SDUI) Platform solves these problems with a hybrid archite
 
 The platform works on a simple principle: **the server decides what the app looks like, and the app knows how to render it**.
 
-<Mermaid chart="flowchart LR; CMS[CMS Admin Panel] -->|Edit screens, flags, themes| API[SDUI Server]; API -->|JSON UI Schema| SDK[Mobile SDK]; SDK -->|Renders components| App[Branded Mobile App]; DB[(SQLite Database)] --> API" />
+<Mermaid
+  chart={`flowchart LR
+    CMS[CMS Admin Panel] -->|Edit screens, flags, themes| API[SDUI Server]
+    API -->|JSON UI Schema| SDK[Mobile SDK]
+    SDK -->|Renders components| App[Branded Mobile App]
+    DB[(SQLite Database)] --> API
+    Sources[Data Source Apps] -->|Dynamic data| API
+`}
+/>
 
 ### The UI Schema
 
 Instead of hardcoding screen layouts, each screen is described as a **JSON document** (UI schema) that specifies:
 
-- **Which components** to display (hero banners, cards, grids, etc.)
+- **Which components** to display (hero banners, cards, grids, etc. — 54 component types)
 - **Component properties** (text, images, colors, actions)
 - **Layout hierarchy** (nesting and ordering)
 - **Actions** to trigger (navigation, webviews, custom handlers)
+- **Overlays** to present (bottom sheets, modals triggered by actions)
+- **Data sources** to fetch (marketing offers, account info, resolved server-side via template expressions)
 - **Conditions** for when to show content (brand, segment, feature flags)
 - **Analytics metadata** for tracking impressions and clicks
 
+### Data Sources
+
+Screens can declare **data sources** that are resolved server-side before the response reaches the client:
+
+- **Marketing offers** — Promotions, bundles, and deals served from a dedicated marketing data source (port 3002)
+- **Account information** — User balances, plan details, and profile data from an account data source (port 3003)
+
+Component props use `{{expression}}` template syntax (e.g., `"Hi {{account.name}}"`), and a **repeat directive** can generate components dynamically from data arrays (e.g., one product card per offer). The mobile SDK receives fully resolved screens — no template logic on the client.
+
 ### Brand Differentiation
 
-All three brands share the same component library but each has its own:
+All brands share the same 54-component library but each has its own:
 
 | Brand   | Name    | Theme         | Target Audience                   |
 | ------- | ------- | ------------- | --------------------------------- |
 | Brand A | Premium | Navy & Gold   | Business, high-value postpaid     |
 | Brand B | Youth   | Purple & Lime | Young adults, prepaid, data-heavy |
 | Brand C | Value   | Orange & Teal | Price-conscious families          |
+| Demo    | Demo    | Default       | Development and testing           |
 
 Themes are stored in the database and applied at runtime — changing a brand's colors, typography, or assets requires no code changes.
 
@@ -83,27 +103,25 @@ The server resolves the correct screen variant based on the brand, segment, and 
 
 ## Technology Stack
 
-| Layer      | Technology              | Why                                               |
-| ---------- | ----------------------- | ------------------------------------------------- |
-| Mobile     | React Native + Expo     | Cross-platform, OTA built-in, fast development    |
-| Server     | Hono (Node.js)          | Lightweight, TypeScript-native, fast              |
-| Database   | SQLite (Prisma)         | File-based, no infrastructure, sufficient for PoC |
-| CMS        | React + Vite + Tailwind | Fast build, modern UI, familiar stack             |
-| OTA        | Expo Updates            | Built into Expo, zero additional setup            |
-| Validation | Zod                     | Runtime type safety for schemas and API contracts |
-
-<Callout type="info">
-  The entire platform runs on a **single server**. The API, CMS backend, and
-  static CMS frontend are all served from one Node.js process — ideal for a PoC
-  that can later scale to separate services.
-</Callout>
+| Layer        | Technology              | Why                                                                               |
+| ------------ | ----------------------- | --------------------------------------------------------------------------------- |
+| Mobile       | React Native + Expo     | Cross-platform, OTA built-in, fast development                                    |
+| Server       | Hono (Node.js)          | Lightweight, TypeScript-native, fast                                              |
+| Database     | SQLite (Prisma)         | File-based, no infrastructure, sufficient for PoC, can be swapped with PostgreSQL |
+| CMS          | React + Vite + Tailwind | Fast build, modern UI, familiar stack                                             |
+| OTA          | Expo Updates            | Built into Expo, zero additional setup                                            |
+| Validation   | Zod                     | Runtime type safety for schemas and API contracts                                 |
+| Data Sources | Hono microservices      | Standalone apps with own databases for marketing offers and account data          |
+| Monorepo     | pnpm + Turborepo        | Fast, efficient dependency management and build orchestration                     |
 
 ## Success Criteria
 
 The PoC demonstrates:
 
-1. Three branded apps sharing over 80% of codebase
+1. Four branded apps (3 brands + demo) sharing over 80% of codebase
 2. UI updates deployed in under 5 minutes without app store submission
-3. Brand-specific theming from shared components
-4. Feature flags controlling functionality per brand
-5. Non-technical users modifying UI via the CMS
+3. Brand-specific theming from shared 54-component library
+4. Feature flags controlling functionality per brand with rollout percentages
+5. Non-technical users modifying UI via the CMS (including a visual screen builder)
+6. Server-side data resolution from external sources without client-side changes
+7. Overlay support for bottom sheets and modals triggered by component actions

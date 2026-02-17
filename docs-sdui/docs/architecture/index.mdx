@@ -11,22 +11,70 @@ The SDUI Platform is organized as a **pnpm monorepo** with clearly separated pac
 
 ## High-Level Architecture
 
-<Mermaid chart="flowchart TB; subgraph clients [Client Layer]; Mobile[Mobile App - Expo + React Native]; CMS[CMS Admin Panel - React + Vite]; end; subgraph server [Server Layer]; Host[Hono Host Server]; PublicAPI[Public SDUI Service]; CMSAPI[CMS Service]; end; subgraph data [Data Layer]; DB[(SQLite Database - Prisma)]; Cache[In-Memory Cache]; end; subgraph shared [Shared Layer]; Schema[SDUI Schema - Zod types]; DBPkg[SDUI Database - Prisma client]; SDKPkg[SDUI SDK - RN hooks + renderer]; end; Mobile -->|API key auth| Host; CMS -->|JWT auth| Host; Host --> PublicAPI; Host --> CMSAPI; PublicAPI --> DBPkg; PublicAPI --> Cache; CMSAPI --> DBPkg; DBPkg --> DB; Mobile --> SDKPkg; SDKPkg --> Schema; PublicAPI --> Schema; CMSAPI --> Schema" />
+<Mermaid
+  chart={`flowchart TB
+    subgraph clients [Client Layer]
+        Mobile[Mobile App - Expo + React Native]
+        CMS[CMS Admin Panel - React + Vite]
+    end
+    subgraph server [Server Layer]
+        Host[Hono Host Server :3001]
+        PublicAPI[Public SDUI Service]
+        CMSAPI[CMS Service]
+        DataProviders[Data Provider Registry]
+    end
+    subgraph sources [Data Source Apps]
+        Marketing[Marketing Source :3002]
+        Account[Account Source :3003]
+    end
+    subgraph data [Data Layer]
+        DB[(SQLite Database - Prisma)]
+        Cache[In-Memory Cache]
+    end
+    subgraph shared [Shared Layer]
+        Schema[SDUI Schema - Zod types]
+        DBPkg[SDUI Database - Prisma client]
+        SDKPkg[SDUI SDK - RN hooks + renderer]
+        Components[SDUI Components - 54 RN components]
+    end
+    Mobile -->|API key auth| Host
+    CMS -->|JWT auth| Host
+    CMS -->|CRUD| Marketing
+    CMS -->|CRUD| Account
+    Host --> PublicAPI
+    Host --> CMSAPI
+    PublicAPI --> DBPkg
+    PublicAPI --> Cache
+    PublicAPI --> DataProviders
+    DataProviders --> Marketing
+    DataProviders --> Account
+    CMSAPI --> DBPkg
+    DBPkg --> DB
+    Mobile --> SDKPkg
+    Mobile --> Components
+    SDKPkg --> Schema
+    PublicAPI --> Schema
+    CMSAPI --> Schema
+`}
+/>
 
 ## Package Map
 
-The monorepo contains **8 SDUI-related projects** split across `packages/` and `apps/`:
+The monorepo contains **11 SDUI-related projects** split across `packages/` and `apps/`:
 
-| Package                       | Path                        | Description                                        |
-| ----------------------------- | --------------------------- | -------------------------------------------------- |
-| `@workspace/sdui-schema`      | `packages/sdui-schema`      | Shared TypeScript types and Zod validation schemas |
-| `@workspace/sdui-database`    | `packages/sdui-database`    | Prisma + SQLite data layer                         |
-| `@workspace/sdui-service`     | `packages/sdui-service`     | Public API for mobile SDK (API key auth)           |
-| `@workspace/sdui-cms-service` | `packages/sdui-cms-service` | Admin API for CMS (JWT auth)                       |
-| `@workspace/sdui-sdk`         | `packages/sdui-sdk`         | React Native UI SDK (client, renderer, hooks)      |
-| `@workspace/cms`              | `packages/cms`              | React + Vite admin panel                           |
-| `@workspace/server`           | `apps/server`               | Hono host server mounting both APIs                |
-| `@workspace/mobile`           | `apps/mobile`               | Expo React Native app (3 brand variants)           |
+| Package                       | Path                        | Description                                            |
+| ----------------------------- | --------------------------- | ------------------------------------------------------ |
+| `@workspace/sdui-schema`      | `packages/sdui-schema`      | Shared TypeScript types and Zod validation schemas     |
+| `@workspace/sdui-database`    | `packages/sdui-database`    | Prisma + SQLite data layer                             |
+| `@workspace/sdui-service`     | `packages/sdui-service`     | Public API for mobile SDK (API key auth)               |
+| `@workspace/sdui-cms-service` | `packages/sdui-cms-service` | Admin API for CMS (JWT auth)                           |
+| `@workspace/sdui-sdk`         | `packages/sdui-sdk`         | React Native UI SDK (client, renderer, hooks)          |
+| `@workspace/sdui-components`  | `packages/sdui-components`  | React Native component implementations (54 components) |
+| `@workspace/cms`              | `packages/cms`              | React + Vite admin panel                               |
+| `@workspace/server`           | `apps/server`               | Hono host server mounting both APIs                    |
+| `@workspace/mobile`           | `apps/mobile`               | Expo React Native app (4 brand variants)               |
+| `@workspace/marketing-source` | `apps/marketing-source`     | Marketing data source server (Hono + Prisma)           |
+| `@workspace/account-source`   | `apps/account-source`       | Account data source server (Hono + Prisma)             |
 
 ## Repository Structure
 
@@ -34,6 +82,7 @@ The monorepo contains **8 SDUI-related projects** split across `packages/` and `
   <Folder name="packages" defaultOpen>
     <Folder name="sdui-schema" defaultOpen>
       <Folder name="src">
+        <File name="index.ts" />
         <File name="ui-schema.ts" />
         <File name="api-contracts.ts" />
         <File name="brand-config.ts" />
@@ -47,39 +96,60 @@ The monorepo contains **8 SDUI-related projects** split across `packages/` and `
         <File name="schema.prisma" />
       </Folder>
       <Folder name="src">
+        <File name="index.ts" />
         <File name="client.ts" />
         <File name="seed.ts" />
+        <File name="demo-brand-screens.ts" />
+        <File name="utils.ts" />
       </Folder>
     </Folder>
     <Folder name="sdui-service">
       <Folder name="src">
         <File name="index.ts" />
+        <File name="create-service.ts" />
         <File name="routes/" />
         <File name="services/" />
+        <File name="providers/" />
         <File name="middleware/" />
       </Folder>
     </Folder>
     <Folder name="sdui-cms-service">
       <Folder name="src">
         <File name="index.ts" />
+        <File name="create-cms-service.ts" />
         <File name="routes/" />
         <File name="middleware/" />
       </Folder>
     </Folder>
     <Folder name="sdui-sdk">
       <Folder name="src">
-        <File name="client.ts" />
-        <File name="renderer.tsx" />
-        <File name="component-registry.ts" />
+        <File name="index.ts" />
+        <File name="sdui-context.tsx" />
+        <File name="client/" />
         <File name="hooks/" />
-        <File name="providers/" />
+        <File name="renderer/" />
+        <File name="theme/" />
+        <File name="overlay/" />
+        <File name="analytics/" />
+      </Folder>
+    </Folder>
+    <Folder name="sdui-components">
+      <Folder name="src">
+        <File name="index.ts" />
+        <File name="component-map.ts" />
+        <File name="mobile-registry.ts" />
+        <File name="prop-helpers.ts" />
+        <File name="components/" />
       </Folder>
     </Folder>
     <Folder name="cms">
       <Folder name="src">
+        <File name="main.tsx" />
+        <File name="app.tsx" />
+        <File name="api-client.ts" />
         <File name="pages/" />
         <File name="components/" />
-        <File name="api-client.ts" />
+        <File name="lib/" />
       </Folder>
     </Folder>
   </Folder>
@@ -97,8 +167,33 @@ The monorepo contains **8 SDUI-related projects** split across `packages/` and `
       <Folder name="components">
         <File name="sdui/" />
       </Folder>
+      <Folder name="lib">
+        <File name="brand-config.ts" />
+      </Folder>
       <Folder name="constants">
         <File name="brands.ts" />
+      </Folder>
+    </Folder>
+    <Folder name="marketing-source">
+      <Folder name="prisma">
+        <File name="schema.prisma" />
+      </Folder>
+      <Folder name="src">
+        <File name="index.ts" />
+        <File name="routes/" />
+        <File name="db.ts" />
+        <File name="seed.ts" />
+      </Folder>
+    </Folder>
+    <Folder name="account-source">
+      <Folder name="prisma">
+        <File name="schema.prisma" />
+      </Folder>
+      <Folder name="src">
+        <File name="index.ts" />
+        <File name="routes/" />
+        <File name="db.ts" />
+        <File name="seed.ts" />
       </Folder>
     </Folder>
   </Folder>
@@ -108,7 +203,38 @@ The monorepo contains **8 SDUI-related projects** split across `packages/` and `
 
 The packages form a clean dependency tree with `sdui-schema` at the foundation:
 
-<Mermaid chart="flowchart BT; Schema[sdui-schema]; DB[sdui-database]; Service[sdui-service]; CMSService[sdui-cms-service]; SDK[sdui-sdk]; CMSApp[cms]; Server[apps/server]; MobileApp[apps/mobile]; DB --> Schema; Service --> Schema; Service --> DB; CMSService --> Schema; CMSService --> DB; SDK --> Schema; CMSApp --> Schema; Server --> Service; Server --> CMSService; Server --> DB; MobileApp --> SDK; MobileApp --> Schema" />
+<Mermaid
+  chart={`flowchart BT
+    Schema[sdui-schema]
+    DB[sdui-database]
+    Service[sdui-service]
+    CMSService[sdui-cms-service]
+    SDK[sdui-sdk]
+    Components[sdui-components]
+    CMSApp[cms]
+    Server[apps/server]
+    MobileApp[apps/mobile]
+    MarketingSource[apps/marketing-source]
+    AccountSource[apps/account-source]
+    DB --> Schema
+    Service --> Schema
+    Service --> DB
+    CMSService --> Schema
+    CMSService --> DB
+    SDK --> Schema
+    Components --> Schema
+    Components --> SDK
+    CMSApp --> Schema
+    Server --> Service
+    Server --> CMSService
+    Server --> DB
+    MobileApp --> SDK
+    MobileApp --> Components
+    MobileApp --> Schema
+    MarketingSource -.->|HTTP| Service
+    AccountSource -.->|HTTP| Service
+`}
+/>
 
 ### Dependency Rules
 
@@ -116,29 +242,39 @@ The packages form a clean dependency tree with `sdui-schema` at the foundation:
 2. **`sdui-database`** depends only on `sdui-schema` for type alignment
 3. **Service packages** (`sdui-service`, `sdui-cms-service`) depend on both `sdui-schema` and `sdui-database`
 4. **`sdui-sdk`** depends only on `sdui-schema` (no server packages) — it communicates over HTTP
-5. **App packages** (`server`, `mobile`, `cms`) compose the library packages
+5. **`sdui-components`** depends on `sdui-schema` and `sdui-sdk` — provides the 54 React Native component implementations
+6. **App packages** (`server`, `mobile`, `cms`) compose the library packages
+7. **Data source apps** (`marketing-source`, `account-source`) are standalone Hono servers with their own Prisma databases — they communicate with the SDUI server over HTTP
 
 ## Layer Responsibilities
 
 ### Shared Layer
 
-- **sdui-schema** — Single source of truth for all TypeScript types and Zod validation. Defines component types, API request/response contracts, brand config shape, feature flag structure, and analytics events.
+- **sdui-schema** — Single source of truth for all TypeScript types and Zod validation. Defines 54 component types, actions, overlays, data source declarations, API request/response contracts, brand config shape, feature flag structure, and analytics events.
 - **sdui-database** — Prisma client configured for SQLite with Better SQLite3 adapter. Provides the database client, migrations, and seed scripts.
 
 ### Server Layer
 
-- **sdui-service** — Public-facing API consumed by the mobile SDK. Handles screen resolution (with segment fallback and A/B test variant assignment), brand config delivery, content offers, and analytics event ingestion. Protected by API key authentication.
-- **sdui-cms-service** — Admin-facing API consumed by the CMS panel. Handles CRUD for screens, feature flags, themes, A/B tests, API keys, and analytics summaries. Protected by JWT authentication.
-- **apps/server** — Thin Hono host that mounts both services under `/api/v1/*` and `/api/cms/*`, adds CORS and logging middleware, and serves the health check endpoint.
+- **sdui-service** — Public-facing API consumed by the mobile SDK. Handles screen resolution (with segment fallback, A/B test variant assignment, and data source resolution via template expressions), brand config delivery, content offers, and analytics event ingestion. Includes a **data provider registry** that fetches dynamic data from external source apps and resolves `{{expression}}` templates in component props. Protected by API key authentication.
+- **sdui-cms-service** — Admin-facing API consumed by the CMS panel. Handles CRUD for screens (including publish/unpublish, duplicate, copy-to-brands), feature flags, themes, A/B tests (with activate/deactivate/select-winner), API keys, and analytics summaries. Protected by JWT authentication.
+- **apps/server** — Thin Hono host that mounts both services under `/api/v1/*` and `/api/cms/*`, registers data providers (marketing, account), adds CORS and logging middleware, and serves the health check endpoint.
+
+### Data Source Layer
+
+- **apps/marketing-source** — Standalone Hono server (port 3002) with its own Prisma + SQLite database. Serves marketing offers and promotions per brand. The CMS can manage this data directly.
+- **apps/account-source** — Standalone Hono server (port 3003) with its own Prisma + SQLite database. Serves user account information. The CMS can manage this data directly.
 
 ### Client Layer
 
-- **sdui-sdk** — React Native library providing the `SduiProvider`, `SduiRenderer`, hooks (`useSduiScreen`, `useTheme`, `useAnalytics`), and a component registry pattern. The SDK fetches UI schemas from the server and renders them using registered React Native components.
-- **packages/cms** — React SPA with React Router, Tailwind CSS, and a typed API client. Provides pages for managing screens, feature flags, themes, A/B tests, analytics, and API keys.
-- **apps/mobile** — Expo app that uses the SDK with a custom component registry implementing all 18 SDUI component types in React Native. Supports brand variants via environment configuration.
+- **sdui-sdk** — React Native library providing the `SduiProvider`, `SduiRenderer`, hooks (`useSduiScreen`, `useTheme`, `useAnalytics`, `useActionHandler`, `useOverlay`), and a component registry pattern. The SDK fetches UI schemas from the server and renders them using registered React Native components.
+- **sdui-components** — Pre-built React Native implementations of all 54 SDUI component types. Provides a `mobileComponentMap` and a ready-to-use `mobileRegistry` so the mobile app can render any component type without custom setup.
+- **packages/cms** — React SPA with React Router, Tailwind CSS, and a typed API client. Provides pages for managing screens (with a visual screen builder), feature flags, themes, A/B tests, analytics, API keys, and data source content (marketing offers, accounts).
+- **apps/mobile** — Expo app that uses the SDK and `sdui-components` with tab navigation (home, plans, account, settings) and brand variant support via environment configuration. Supports 4 brand variants: `brand_a`, `brand_b`, `brand_c`, and `brand_demo`.
 
 <Callout type="info">
   The architecture is designed so that the mobile app has **zero knowledge** of
   the server's internals. It communicates exclusively through the SDK, which in
-  turn uses the public API defined by the shared schema contracts.
+  turn uses the public API defined by the shared schema contracts. Data source
+  resolution happens entirely server-side — the client receives fully resolved
+  screens with no template expressions.
 </Callout>

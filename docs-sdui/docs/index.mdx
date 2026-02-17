@@ -20,12 +20,14 @@ The SDUI Platform enables a single React Native codebase to serve **multiple bra
 
 ## Key Capabilities
 
-- **Server-Driven UI** — Screen layouts defined as JSON schemas, rendered dynamically on the client
-- **Multi-Brand Support** — Three distinct brand themes from one codebase (Premium, Youth, Value)
+- **Server-Driven UI** — Screen layouts defined as JSON schemas with 54 component types, rendered dynamically on the client
+- **Multi-Brand Support** — Four brand variants from one codebase (Premium, Youth, Value, Demo)
 - **Instant Updates** — Change UI content via CMS without app store submissions
+- **Dynamic Data Sources** — Server-side data resolution from external microservices (marketing, accounts) using template expressions
 - **Feature Flags** — Toggle features per brand with rollout percentage control
 - **A/B Testing** — Deterministic variant assignment for layout experiments
 - **Personalization** — Segment-based content (prepaid, postpaid, business)
+- **Overlays** — Bottom sheets and modals triggered by component actions, defined in the UI schema
 - **Analytics** — Built-in event tracking for impressions, clicks, and screen views
 - **OTA Updates** — Over-the-air code updates via Expo Updates
 
@@ -49,7 +51,7 @@ pnpm install
 pnpm dev:sdui
 ```
 
-This sets up the database, seeds demo data, and starts both the API server and CMS.
+This sets up the database, seeds demo data, and starts all four services: the SDUI API server, CMS admin panel, marketing data source, and account data source.
 
 </Step>
 <Step>
@@ -58,6 +60,8 @@ This sets up the database, seeds demo data, and starts both the API server and C
 
 - **API Server** — http://localhost:3001
 - **CMS Admin** — http://localhost:5173/admin
+- **Marketing Source** — http://localhost:3002
+- **Account Source** — http://localhost:3003
 - **CMS Login** — `admin@telco-poc.com` / `admin123`
 
 </Step>
@@ -65,14 +69,15 @@ This sets up the database, seeds demo data, and starts both the API server and C
 
 ## Documentation Sections
 
-| Section                                              | Description                                                   |
-| ---------------------------------------------------- | ------------------------------------------------------------- |
-| [Overview](/overview)                                | System overview, problem statement, and solution architecture |
-| [Architecture](/architecture)                        | Package structure, layers, and dependency graph               |
-| [Data Flow](/architecture/data-flow)                 | Request lifecycle, caching, and personalization               |
-| [Sequence Diagrams](/architecture/sequence-diagrams) | Visual flows for key operations                               |
-| [API Reference](/architecture/api-reference)         | Public and CMS API endpoints                                  |
-| [Database Schema](/architecture/database-schema)     | Prisma models and relationships                               |
-| [SDK Guide](/guides/sdk)                             | React Native SDK usage, hooks, and renderer                   |
-| [CMS Guide](/guides/cms)                             | Admin panel features and workflows                            |
-| [Development Guide](/guides/development)             | Setup, running, testing, and project structure                |
+| Section                                              | Description                                                      |
+| ---------------------------------------------------- | ---------------------------------------------------------------- |
+| [Overview](/overview)                                | System overview, problem statement, and solution architecture    |
+| [Architecture](/architecture)                        | Package structure (11 projects), layers, and dependency graph    |
+| [Data Flow](/architecture/data-flow)                 | Request lifecycle, caching, and personalization                  |
+| [Data Sources](/architecture/data-sources)           | Dynamic data resolution, providers, and template expressions     |
+| [Sequence Diagrams](/architecture/sequence-diagrams) | Visual flows for key operations                                  |
+| [API Reference](/architecture/api-reference)         | Public and CMS API endpoints                                     |
+| [Database Schema](/architecture/database-schema)     | Prisma models and relationships                                  |
+| [SDK Guide](/guides/sdk)                             | React Native SDK usage, hooks, and renderer                      |
+| [CMS Guide](/guides/cms)                             | Admin panel features, screen builder, and data source management |
+| [Development Guide](/guides/development)             | Setup, running, testing, and project structure                   |
