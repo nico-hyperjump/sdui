@@ -1,0 +1,66 @@
+---
+title: Skeleton Loader
+description: Loading placeholder
+---
+
+# Skeleton Loader
+
+Component that displays animated loading placeholders with shimmer effect. Text variant shows shimmer lines (last line shorter). Image variant shows a rectangle. Card variant shows a rounded box. Use Skeleton Loader for loading states to improve perceived performance and provide visual feedback during data fetching.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `variant` | `"text" \| "image" \| "card"` | `"text"` | Visual variant type |
+| `lines` | `number` | `3` | Number of text lines (text variant only) |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "skeleton-1",
+      "type": "skeleton_loader",
+      "props": {
+        "variant": "text",
+        "lines": 4
+      }
+    },
+    {
+      "id": "skeleton-2",
+      "type": "skeleton_loader",
+      "props": {
+        "variant": "image"
+      }
+    },
+    {
+      "id": "skeleton-3",
+      "type": "skeleton_loader",
+      "props": {
+        "variant": "card"
+      }
+    },
+    {
+      "id": "skeleton-4",
+      "type": "skeleton_loader",
+      "props": {
+        "variant": "text",
+        "lines": 2
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Text variant shows shimmer lines with the last line shorter
+- Image variant displays a rectangular placeholder
+- Card variant shows a rounded box placeholder
+- Use for loading states to improve perceived performance
+- Provides visual feedback during data fetching
+- Lines prop only applies to text variant
+- Shimmer animation provides smooth loading indication

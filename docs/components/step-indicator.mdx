@@ -1,0 +1,59 @@
+---
+title: Step Indicator
+description: Multi-step progress
+---
+
+# Step Indicator
+
+Component that displays a horizontal row of numbered circles connected by lines, indicating progress through multiple steps. Active steps are highlighted with accent color. Use Step Indicator for checkout flows, onboarding processes, delivery tracking, or any multi-step workflow visualization.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `steps` | `string[]` | — | Array of step label strings |
+| `currentStep` | `number` | — | Zero-based index of the current active step |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "steps-1",
+      "type": "step_indicator",
+      "props": {
+        "steps": ["Cart", "Shipping", "Payment", "Review"],
+        "currentStep": 1
+      }
+    },
+    {
+      "id": "steps-2",
+      "type": "step_indicator",
+      "props": {
+        "steps": ["Sign Up", "Verify Email", "Complete Profile"],
+        "currentStep": 0
+      }
+    },
+    {
+      "id": "steps-3",
+      "type": "step_indicator",
+      "props": {
+        "steps": ["Order Placed", "Preparing", "Shipped", "Out for Delivery", "Delivered"],
+        "currentStep": 3
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Horizontal row of numbered circles connected by lines
+- Active steps highlighted with accent color
+- Use for checkout flows, onboarding processes, delivery tracking, or multi-step workflows
+- Steps array contains the labels for each step
+- CurrentStep is zero-based (0 = first step, 1 = second step, etc.)
+- Completed steps show filled circles, active step shows accent highlight, future steps show outline

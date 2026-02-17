@@ -1,0 +1,50 @@
+---
+title: Image
+description: Image display
+---
+
+# Image
+
+Component that displays a remote image with optional dimensions. Use Image to show photos, illustrations, or graphics in your screen.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `uri` | `string` | — | Image URL or URI |
+| `src` | `string` | — | Alternative prop name for uri |
+| `width` | `number` | — | Image width in pixels |
+| `height` | `number` | — | Image height in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "image-1",
+      "type": "image",
+      "props": {
+        "uri": "https://example.com/image.jpg",
+        "width": 300,
+        "height": 200
+      }
+    },
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "Image caption"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Both `uri` and `src` props are supported
+- Width and height are optional; if omitted, image uses intrinsic dimensions
+- Images are loaded from remote URLs

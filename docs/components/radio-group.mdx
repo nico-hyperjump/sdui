@@ -1,0 +1,58 @@
+---
+title: Radio Group
+description: Single-select option list
+---
+
+# Radio Group
+
+Single-select option list component that displays a group of radio buttons. Only one option can be selected at a time. Radio circles show an inner dot for the selected option. Ideal for exclusive choices like payment methods, shipping options, or any single-select scenario.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `options` | `array` | — | Array of option objects with `label` and `value` properties |
+| `value` | `string` | — | Currently selected option value |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "radio-1",
+      "type": "radio_group",
+      "props": {
+        "options": [
+          { "label": "Credit Card", "value": "credit" },
+          { "label": "PayPal", "value": "paypal" },
+          { "label": "Bank Transfer", "value": "bank" }
+        ],
+        "value": "credit"
+      }
+    },
+    {
+      "id": "radio-2",
+      "type": "radio_group",
+      "props": {
+        "options": [
+          { "label": "Standard Shipping", "value": "standard" },
+          { "label": "Express Shipping", "value": "express" }
+        ],
+        "value": "standard"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Radio Group displays a group of radio buttons for single selection
+- Only one option can be selected at a time (exclusive choice)
+- Radio circles show an inner dot for the selected option
+- Options array must contain objects with `label` and `value` properties
+- Value prop determines which option is currently selected
+- Ideal for exclusive choices like payment methods, shipping options

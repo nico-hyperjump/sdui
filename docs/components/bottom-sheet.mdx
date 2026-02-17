@@ -1,0 +1,63 @@
+---
+title: Bottom Sheet
+description: Overlay slide-up container
+---
+
+# Bottom Sheet
+
+Overlay slide-up container component that displays content in a rounded sheet that slides up from the bottom. Uses React Native Modal for the overlay. Includes a drag handle for visual indication. Ideal for options menus, payment selection, filters, or any modal content.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `dismissible` | `boolean` | `true` | Whether the sheet can be dismissed by tapping outside or swiping down |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "sheet-1",
+      "type": "bottom_sheet",
+      "props": {
+        "dismissible": true
+      },
+      "children": [
+        {
+          "id": "content-1",
+          "type": "stack",
+          "children": [
+            {
+              "id": "text-1",
+              "type": "text",
+              "props": {
+                "content": "Sheet content here"
+              }
+            },
+            {
+              "id": "button-1",
+              "type": "button",
+              "props": {
+                "label": "Close"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Bottom Sheet displays content in a rounded overlay that slides up from the bottom
+- Uses React Native Modal for the overlay functionality
+- Includes a drag handle for visual indication
+- Dismissible sheets can be closed by tapping outside or swiping down (default: true)
+- Renders children inside the rounded sheet container
+- Ideal for options menus, payment selection, filters, or modal content

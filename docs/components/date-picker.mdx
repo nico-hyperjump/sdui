@@ -1,0 +1,68 @@
+---
+title: Date Picker
+description: Date selection trigger
+---
+
+# Date Picker
+
+Date selection trigger component that displays a button showing the selected date value. Supports date, time, and datetime modes with optional min/max date constraints. In production, connects to native date picker for platform-specific date selection UI.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `label` | `string` | — | Label text displayed on the button |
+| `value` | `string` | — | Selected date/time value (ISO 8601 format) |
+| `mode` | `"date" \| "time" \| "datetime"` | `"date"` | Selection mode (date only, time only, or both) |
+| `minDate` | `string` | — | Minimum selectable date (ISO 8601 format) |
+| `maxDate` | `string` | — | Maximum selectable date (ISO 8601 format) |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "picker-1",
+      "type": "date_picker",
+      "props": {
+        "label": "Select Date",
+        "value": "2026-02-17",
+        "mode": "date",
+        "minDate": "2026-01-01",
+        "maxDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "picker-2",
+      "type": "date_picker",
+      "props": {
+        "label": "Select Time",
+        "value": "14:30",
+        "mode": "time"
+      }
+    },
+    {
+      "id": "picker-3",
+      "type": "date_picker",
+      "props": {
+        "label": "Select Date & Time",
+        "value": "2026-02-17T14:30:00Z",
+        "mode": "datetime"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Date Picker displays a button that triggers date selection
+- Button shows the selected value or label if no value is set
+- Supports three modes: date, time, and datetime
+- Min/max date constraints limit selectable range
+- Values should be in ISO 8601 format
+- In production, connects to native date picker for platform-specific UI
+- Default mode is "date"

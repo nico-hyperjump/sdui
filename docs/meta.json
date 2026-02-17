@@ -1,0 +1,5 @@
+{
+  "title": "SDUI Platform",
+  "pages": ["index", "overview", "architecture", "components", "guides"],
+  "defaultOpen": true
+}

@@ -1,0 +1,57 @@
+---
+title: Toggle
+description: On/off switch
+---
+
+# Toggle
+
+On/off switch component that renders a labeled Switch for boolean settings. Use Toggle for settings, preferences, or any on/off configuration options.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `label` | `string` | — | Label text displayed next to the switch |
+| `value` | `boolean` | `false` | Current toggle state |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "toggle-1",
+      "type": "toggle",
+      "props": {
+        "label": "Enable Notifications",
+        "value": true
+      }
+    },
+    {
+      "id": "toggle-2",
+      "type": "toggle",
+      "props": {
+        "label": "Dark Mode",
+        "value": false
+      }
+    },
+    {
+      "id": "toggle-3",
+      "type": "toggle",
+      "props": {
+        "label": "Auto-save",
+        "value": true
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Toggle renders a labeled Switch component
+- Value defaults to false if not provided
+- Use for settings screens, preferences, and on/off options
+- Provides visual feedback for boolean state changes

@@ -1,0 +1,362 @@
+---
+title: SDK Guide
+description: Using the React Native SDUI SDK — providers, hooks, renderer, and component registry
+icon: Smartphone
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+# SDK Guide
+
+The `@workspace/sdui-sdk` package provides everything a React Native app needs to consume server-driven UI — a client for API communication, a renderer for component trees, hooks for state management, and a registry pattern for custom components.
+
+## Installation
+
+The SDK and component packages are workspace packages. In the mobile app's `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@workspace/sdui-components": "workspace:*",
+    "@workspace/sdui-sdk": "workspace:*",
+    "@workspace/sdui-schema": "workspace:*"
+  }
+}
+```
+
+## Core Concepts
+
+### SduiProvider
+
+The root provider that initializes the SDK. Wrap your app's root layout:
+
+```tsx title="app/_layout.tsx"
+import { SduiProvider } from "@workspace/sdui-sdk";
+
+export default function RootLayout() {
+  return (
+    <SduiProvider
+      serviceUrl="http://localhost:3001/api/v1"
+      apiKey="sk_brand_a_demo_key"
+      brand="brand_a"
+      userSegment="prepaid"
+      userId="user123"
+      componentRegistry={mobileRegistry}
+    >
+      <Slot />
+    </SduiProvider>
+  );
+}
+```
+
+**Props:**
+
+| Prop                | Type              | Required | Description                                |
+| ------------------- | ----------------- | -------- | ------------------------------------------ |
+| `serviceUrl`        | string            | Yes      | Base URL for the SDUI API                  |
+| `apiKey`            | string            | Yes      | API key for authentication                 |
+| `brand`             | string            | Yes      | Brand identifier                           |
+| `userSegment`       | string            | No       | User segment for personalization           |
+| `userId`            | string            | No       | User ID for A/B tests and rollout          |
+| `componentRegistry` | ComponentRegistry | Yes      | Map of component types to React components |
+
+**What it does on mount:**
+
+1. Creates an `SduiClient` instance with the service URL and API key
+2. Creates a `CacheManager` for response caching
+3. Fetches the brand config (`GET /config/:brand`) and provides theme via `ThemeProvider`
+
+### Component Registry
+
+The registry maps SDUI component type strings to React components. This is how the SDK knows which component to render for each type in the JSON schema.
+
+The `@workspace/sdui-components` package provides a **type-safe** component map and a pre-built registry for React Native / Expo apps. The map is typed as `Record<SduiComponentType, ComponentType<SduiComponentProps>>`, so TypeScript will produce a compile-time error if any component type is missing or misspelled.
+
+```tsx title="Using the pre-built registry"
+import { mobileRegistry } from "@workspace/sdui-components";
+
+// Pass to SduiRenderer or SduiProvider
+<SduiRenderer components={screen.components} registry={mobileRegistry} />;
+```
+
+Under the hood, the registry is built from a type-safe component map:
+
+```tsx title="packages/sdui-components/src/component-map.ts"
+import type { SduiComponentMap } from "@workspace/sdui-sdk";
+
+export const mobileComponentMap: SduiComponentMap = {
+  stack: SduiStack,
+  row: SduiRow,
+  column: SduiColumn,
+  scroll_view: SduiScrollView,
+  spacer: SduiSpacer,
+  text: SduiText,
+  image: SduiImage,
+  icon: SduiIcon,
+  divider: SduiDivider,
+  button: SduiButton,
+  card: SduiCard,
+  link: SduiLink,
+  hero_banner: SduiHeroBanner,
+  action_card: SduiActionCard,
+  product_card: SduiProductCard,
+  list_item: SduiListItem,
+  action_grid: SduiActionGrid,
+  web_view: SduiWebView,
+};
+```
+
+<Callout type="info">
+  If a new component type is added to `SduiComponentType` in the schema,
+  TypeScript will immediately flag `mobileComponentMap` as incomplete until an
+  implementation is provided. This eliminates the risk of missing or mismatched
+  components.
+</Callout>
+
+You can also build a custom registry using `ComponentRegistry.fromMap()`:
+
+```tsx title="Custom registry"
+import { ComponentRegistry } from "@workspace/sdui-sdk";
+import type { SduiComponentMap } from "@workspace/sdui-sdk";
+
+const customMap: SduiComponentMap = {
+  // ... all 18 component types required
+};
+
+const customRegistry = ComponentRegistry.fromMap(customMap);
+```
+
+**Supported Component Types (18):**
+
+| Category    | Types                                                                                |
+| ----------- | ------------------------------------------------------------------------------------ |
+| Layout      | `stack`, `row`, `column`, `scroll_view`, `spacer`                                    |
+| Content     | `text`, `image`, `icon`, `divider`                                                   |
+| Interactive | `button`, `card`, `link`                                                             |
+| Composite   | `hero_banner`, `action_card`, `product_card`, `list_item`, `action_grid`, `web_view` |
+
+### SduiRenderer
+
+The renderer recursively walks a component tree and renders each component using the registry:
+
+```tsx
+import { SduiRenderer } from "@workspace/sdui-sdk";
+
+function HomeScreen() {
+  const { screen, loading, error } = useSduiScreen("home");
+
+  if (loading) return <ActivityIndicator />;
+  if (error) return <ErrorView error={error} />;
+
+  return <SduiRenderer components={screen.components} />;
+}
+```
+
+**Rendering Logic:**
+
+1. For each component in the array, look up its `type` in the registry
+2. Pass `props`, `children`, `action`, and `analytics` to the resolved component
+3. Recursively render `children` components
+4. Unknown types are silently skipped (renders `null`)
+
+### Writing a Custom Component
+
+Each component receives standard props from the renderer:
+
+```tsx title="components/sdui/hero-banner.tsx"
+import { View, Text, Image, TouchableOpacity } from "react-native";
+import { useTheme, useAnalytics } from "@workspace/sdui-sdk";
+import type { SduiComponent } from "@workspace/sdui-schema";
+
+interface HeroBannerProps {
+  component: SduiComponent;
+}
+
+export function HeroBanner({ component }: HeroBannerProps) {
+  const theme = useTheme();
+  const { trackButtonClick } = useAnalytics();
+  const { image_url, title, subtitle, cta_text, cta_action } = component.props;
+
+  const handlePress = () => {
+    trackButtonClick(component.id, cta_action?.type ?? "unknown");
+
+    if (cta_action?.type === "navigate") {
+      // Use Expo Router to navigate
+      router.push(cta_action.screen);
+    }
+  };
+
+  return (
+    <View style={{ backgroundColor: theme.colors.primary }}>
+      <Image
+        source={{ uri: image_url }}
+        style={{ width: "100%", height: 200 }}
+      />
+      <Text
+        style={{
+          color: theme.colors.text,
+          fontWeight: theme.typography.heading_weight,
+        }}
+      >
+        {title}
+      </Text>
+      <Text style={{ color: theme.colors.text }}>{subtitle}</Text>
+      <TouchableOpacity onPress={handlePress}>
+        <Text>{cta_text}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+```
+
+## Hooks
+
+### useSduiScreen
+
+Fetches and caches a screen from the SDUI API.
+
+```tsx
+const { screen, loading, error, refetch } = useSduiScreen("home");
+```
+
+**Returns:**
+
+| Field     | Type                 | Description                        |
+| --------- | -------------------- | ---------------------------------- |
+| `screen`  | `SduiScreen \| null` | The resolved screen data           |
+| `loading` | `boolean`            | Whether the request is in progress |
+| `error`   | `Error \| null`      | Any error that occurred            |
+| `refetch` | `() => void`         | Force re-fetch (bypasses cache)    |
+
+**Behavior:**
+
+- Checks the cache first; makes an API call on miss
+- Includes brand, segment, and userId from the `SduiProvider` context
+- Automatically re-fetches when `screenId` changes
+
+### useTheme
+
+Access the current brand's theme (colors, typography, assets).
+
+```tsx
+const theme = useTheme();
+// theme.colors.primary → "#003366"
+// theme.typography.font_family → "Inter"
+// theme.assets.logo → "https://..."
+```
+
+**Returns:** `BrandTheme`
+
+```ts
+interface BrandTheme {
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    text: string;
+  };
+  typography: {
+    font_family: string;
+    heading_weight: string;
+    body_weight: string;
+  };
+  assets: {
+    logo: string;
+    app_icon?: string;
+  };
+}
+```
+
+### useAnalytics
+
+Provides analytics tracking helpers.
+
+```tsx
+const analytics = useAnalytics();
+
+// Track a screen view
+analytics.trackScreenView("home");
+
+// Track a button click
+analytics.trackButtonClick("hero_cta", "navigate");
+
+// Track a component impression
+analytics.trackImpression("promo_banner_1", "hero_banner");
+
+// Track a custom event
+analytics.trackEvent({
+  event_type: "custom_action",
+  screen_id: "home",
+  payload: { key: "value" },
+});
+```
+
+### useSduiClient
+
+Access the raw SDK client for custom API calls.
+
+```tsx
+const client = useSduiClient();
+
+// Fetch offers manually
+const offers = await client.fetchOffers("prepaid");
+```
+
+## SduiClient API
+
+The `SduiClient` class handles HTTP communication with the SDUI server.
+
+| Method                          | Description                              |
+| ------------------------------- | ---------------------------------------- |
+| `fetchScreen(screenId, params)` | Fetch a screen with brand/segment/userId |
+| `fetchConfig(brand)`            | Fetch brand config (theme + flags)       |
+| `fetchOffers(segment)`          | Fetch personalized offers                |
+| `trackEvent(event)`             | Send an analytics event                  |
+
+## Integration Example
+
+<Steps>
+<Step>
+
+### Set up the provider
+
+Wrap your app root with `SduiProvider`, passing your brand config and component registry.
+
+</Step>
+<Step>
+
+### Use the component registry
+
+Import `mobileRegistry` from `@workspace/sdui-components` (or build a custom one with `ComponentRegistry.fromMap()`). The type-safe `SduiComponentMap` ensures every component type has an implementation.
+
+</Step>
+<Step>
+
+### Use hooks in screens
+
+Call `useSduiScreen("screenId")` in each tab to fetch and render server-driven content. Use `useTheme()` for brand styling.
+
+</Step>
+<Step>
+
+### Handle actions
+
+Implement navigation, webview, and custom action handlers in your components. Use Expo Router's `router.push()` for navigation actions.
+
+</Step>
+<Step>
+
+### Track analytics
+
+Use `useAnalytics()` to track screen views, impressions, and button clicks. Events are sent to the server and visible in the CMS analytics dashboard.
+
+</Step>
+</Steps>
+
+<Callout type="info">
+  The SDK is designed to be **framework-agnostic** at its core. While the hooks
+  and providers are React-specific, the `SduiClient` and `CacheManager` classes
+  can be used independently in any JavaScript environment.
+</Callout>

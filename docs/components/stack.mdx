@@ -1,0 +1,48 @@
+---
+title: Stack
+description: Vertical list with spacing
+---
+
+# Stack
+
+Container component that renders children vertically with consistent spacing between them. Use Stack when you need to arrange components in a vertical layout.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `gap` | `number` | `8` | Spacing between child components in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "props": {
+    "gap": 16
+  },
+  "children": [
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "First item"
+      }
+    },
+    {
+      "id": "text-2",
+      "type": "text",
+      "props": {
+        "content": "Second item"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Stack is the primary component for vertical layouts
+- Gap applies spacing between all direct children
+- Use Column for similar vertical layouts with different semantic meaning

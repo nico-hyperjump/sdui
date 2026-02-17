@@ -1,0 +1,6 @@
+{
+  "title": "Guides",
+  "icon": "BookOpen",
+  "pages": ["development", "sdk", "cms"],
+  "defaultOpen": true
+}

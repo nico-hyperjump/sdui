@@ -1,0 +1,159 @@
+---
+title: Overlay
+description: Screen-level modal, bottom sheet, and fullscreen overlays
+---
+
+# Overlay
+
+Screen-level overlay that presents content above the main component tree. Overlays are defined in the screen's `overlays` array — separate from `components` — and triggered either manually by a `show_overlay` action or automatically when the screen loads. Supports three visual styles: centred modal, bottom sheet, and fullscreen.
+
+## Overlay Definition
+
+Overlays live at the screen level, not inside the component tree:
+
+| Field            | Type                                            | Default              | Description                                                        |
+| ---------------- | ----------------------------------------------- | -------------------- | ------------------------------------------------------------------ |
+| `id`             | `string`                                        | —                    | Unique identifier, referenced by `show_overlay` actions            |
+| `style`          | `"modal"` \| `"bottom_sheet"` \| `"fullscreen"` | `"modal"`            | Visual presentation style                                          |
+| `dismissible`    | `boolean`                                       | `true`               | Whether the overlay can be dismissed by tapping outside or swiping |
+| `trigger`        | `{ type: "manual" }` \| `{ type: "on_load" }`   | `{ type: "manual" }` | When the overlay is shown                                          |
+| `dismissAfterMs` | `number`                                        | —                    | Auto-dismiss after this many milliseconds                          |
+| `components`     | `SduiComponent[]`                               | —                    | Component tree rendered inside the overlay                         |
+
+## Action Types
+
+Two new action types control overlay visibility:
+
+| Action            | Fields       | Description                                                 |
+| ----------------- | ------------ | ----------------------------------------------------------- |
+| `show_overlay`    | `overlayId`  | Show the overlay matching the given id                      |
+| `dismiss_overlay` | `overlayId?` | Dismiss a specific overlay, or the topmost one when omitted |
+
+## Examples
+
+### Manual trigger — button opens a modal
+
+```json title="Screen JSON"
+{
+  "screenId": "home",
+  "schemaVersion": "1.0",
+  "brand": "brand_a",
+  "updatedAt": "2026-02-17T00:00:00Z",
+  "components": [
+    {
+      "id": "promo-btn",
+      "type": "button",
+      "props": { "label": "See Offer" },
+      "action": { "type": "show_overlay", "overlayId": "promo-modal" }
+    }
+  ],
+  "overlays": [
+    {
+      "id": "promo-modal",
+      "style": "modal",
+      "dismissible": true,
+      "trigger": { "type": "manual" },
+      "components": [
+        {
+          "id": "promo-text",
+          "type": "text",
+          "props": { "content": "50% off all data plans!" }
+        },
+        {
+          "id": "close-btn",
+          "type": "button",
+          "props": { "label": "Close" },
+          "action": { "type": "dismiss_overlay" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### On-load trigger — welcome bottom sheet with auto-dismiss
+
+```json title="Screen JSON"
+{
+  "screenId": "home",
+  "schemaVersion": "1.0",
+  "brand": "brand_a",
+  "updatedAt": "2026-02-17T00:00:00Z",
+  "components": [
+    {
+      "id": "hero-1",
+      "type": "hero_banner",
+      "props": { "title": "Welcome back!" }
+    }
+  ],
+  "overlays": [
+    {
+      "id": "welcome-sheet",
+      "style": "bottom_sheet",
+      "dismissible": true,
+      "trigger": { "type": "on_load" },
+      "dismissAfterMs": 5000,
+      "components": [
+        {
+          "id": "welcome-text",
+          "type": "text",
+          "props": { "content": "You have 3 new offers waiting" }
+        },
+        {
+          "id": "view-btn",
+          "type": "button",
+          "props": { "label": "View Offers" },
+          "action": { "type": "navigate", "screen": "offers" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Fullscreen overlay
+
+```json title="Screen JSON"
+{
+  "screenId": "onboarding",
+  "schemaVersion": "1.0",
+  "brand": "brand_b",
+  "updatedAt": "2026-02-17T00:00:00Z",
+  "components": [],
+  "overlays": [
+    {
+      "id": "terms-overlay",
+      "style": "fullscreen",
+      "dismissible": false,
+      "trigger": { "type": "on_load" },
+      "components": [
+        {
+          "id": "terms-text",
+          "type": "text",
+          "props": {
+            "content": "Please accept our terms and conditions to continue."
+          }
+        },
+        {
+          "id": "accept-btn",
+          "type": "button",
+          "props": { "label": "Accept" },
+          "action": { "type": "dismiss_overlay", "overlayId": "terms-overlay" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Overlays are defined in the screen-level `overlays` array, not nested inside `components`
+- The `show_overlay` action references an overlay by its `id`
+- `dismiss_overlay` without an `overlayId` dismisses the topmost (most recently shown) overlay
+- `on_load` overlays are shown automatically when the screen mounts
+- `dismissAfterMs` starts a timer when the overlay becomes visible; it auto-dismisses after the specified duration
+- Dismissible overlays can be closed by tapping outside (modal/bottom sheet) or swiping down (bottom sheet)
+- Non-dismissible overlays require an explicit `dismiss_overlay` action (e.g. a button inside the overlay)
+- Components inside overlays support the full component tree including nested children, actions, and analytics
+- The visual container is provided by the platform implementation (`SduiOverlayContainer` in `sdui-components`)

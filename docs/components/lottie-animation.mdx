@@ -1,0 +1,60 @@
+---
+title: Lottie Animation
+description: Animated content
+---
+
+# Lottie Animation
+
+Component that displays Lottie animations from JSON source files. Placeholder implementation — in production use lottie-react-native. Use Lottie Animation for success states, onboarding flows, empty states, or any screen requiring smooth animated content.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `source` | `string` | — | JSON URI or path to Lottie animation file |
+| `autoPlay` | `boolean` | — | Whether animation starts automatically |
+| `loop` | `boolean` | — | Whether animation loops continuously |
+| `width` | `number` | `120` | Animation width in pixels |
+| `height` | `number` | `120` | Animation height in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "lottie-1",
+      "type": "lottie_animation",
+      "props": {
+        "source": "https://example.com/animations/success.json",
+        "autoPlay": true,
+        "loop": false,
+        "width": 200,
+        "height": 200
+      }
+    },
+    {
+      "id": "lottie-2",
+      "type": "lottie_animation",
+      "props": {
+        "source": "https://example.com/animations/loading.json",
+        "autoPlay": true,
+        "loop": true,
+        "width": 150,
+        "height": 150
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Placeholder implementation — in production use lottie-react-native
+- Use for success states, onboarding flows, empty states, loading indicators, or celebratory animations
+- Source should point to a valid Lottie JSON file
+- AutoPlay controls whether animation starts on mount
+- Loop enables continuous playback for loading or background animations
+- Width and height control the animation dimensions

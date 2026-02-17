@@ -1,0 +1,60 @@
+---
+title: Section Header
+description: Section title with "See All" action
+---
+
+# Section Header
+
+Section header component that displays a title with an optional subtitle and "See All" action link. Use Section Header to organize content sections, especially on home screens and category pages.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `title` | `string` | — | Section title text |
+| `subtitle` | `string` | — | Optional subtitle text |
+| `actionLabel` | `string` | `"See All"` | Text for the action link |
+| `action` | `object` | — | Action configuration for the "See All" link |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "section-header-1",
+      "type": "section_header",
+      "props": {
+        "title": "Featured Products",
+        "subtitle": "Handpicked for you",
+        "actionLabel": "See All",
+        "action": {
+          "type": "navigate",
+          "screen": "products"
+        }
+      }
+    },
+    {
+      "id": "section-header-2",
+      "type": "section_header",
+      "props": {
+        "title": "Categories",
+        "actionLabel": "View All",
+        "action": {
+          "type": "navigate",
+          "screen": "categories"
+        }
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Section Header is a universal home screen pattern
+- Supports action types: navigate, webview, and custom actions
+- Default action label is "See All" but can be customized
+- Use to organize content sections with navigation to full views

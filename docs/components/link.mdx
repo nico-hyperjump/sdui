@@ -1,0 +1,63 @@
+---
+title: Link
+description: Tappable text link
+---
+
+# Link
+
+Component that renders a tappable text link with underlined accent styling. Use Link for navigation, external URLs, or secondary actions.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `label` | `string` | `"Link"` | Link text label |
+| `text` | `string` | `"Link"` | Alternative prop name for label |
+| `href` | `string` | — | URL to navigate to |
+| `url` | `string` | — | Alternative prop name for href |
+| `action` | `object` | — | Action configuration (navigate, webview, custom) |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "Visit our "
+      }
+    },
+    {
+      "id": "link-1",
+      "type": "link",
+      "props": {
+        "label": "website",
+        "href": "https://example.com"
+      }
+    },
+    {
+      "id": "link-2",
+      "type": "link",
+      "props": {
+        "text": "Learn more",
+        "action": {
+          "type": "navigate",
+          "screen": "details-screen"
+        }
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Link supports `label` or `text` props for link text
+- Default label is "Link" if none provided
+- Use `href` or `url` to open URLs directly
+- Supports action types: navigate, webview, and custom actions
+- Styled with underlined accent text color

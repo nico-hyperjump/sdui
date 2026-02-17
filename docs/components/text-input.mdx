@@ -1,0 +1,72 @@
+---
+title: Text Input
+description: Form text field
+---
+
+# Text Input
+
+Form text field component that accepts user text input with configurable keyboard types. Use Text Input for forms, search fields, or any text entry needs.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `label` | `string` | — | Label text displayed above the input |
+| `placeholder` | `string` | — | Placeholder text displayed when input is empty |
+| `inputType` | `"text" \| "email" \| "phone" \| "number" \| "password"` | `"text"` | Input type that maps to keyboard type |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "input-1",
+      "type": "text_input",
+      "props": {
+        "label": "Email",
+        "placeholder": "Enter your email",
+        "inputType": "email"
+      }
+    },
+    {
+      "id": "input-2",
+      "type": "text_input",
+      "props": {
+        "label": "Phone Number",
+        "placeholder": "(555) 123-4567",
+        "inputType": "phone"
+      }
+    },
+    {
+      "id": "input-3",
+      "type": "text_input",
+      "props": {
+        "label": "Password",
+        "placeholder": "Enter password",
+        "inputType": "password"
+      }
+    },
+    {
+      "id": "input-4",
+      "type": "text_input",
+      "props": {
+        "label": "Name",
+        "placeholder": "Enter your name",
+        "inputType": "text"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Text Input maps inputType to the appropriate keyboard type
+- Password mode hides text input for security
+- Email type shows email keyboard with @ symbol
+- Phone type shows numeric keypad
+- Number type shows numeric keyboard
+- Use for forms, search fields, and text entry

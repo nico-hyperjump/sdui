@@ -1,0 +1,59 @@
+---
+title: Swipeable Row
+description: Row with swipe actions
+---
+
+# Swipeable Row
+
+Row component with swipe actions that reveals hidden action buttons when swiped left or right. Container displays children content with action buttons hidden behind. In production needs react-native-gesture-handler for swipe gesture detection.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `rightActions` | `array` | — | Array of action objects with `label` and `color` properties for right-side swipe actions |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "row-1",
+      "type": "swipeable_row",
+      "props": {
+        "rightActions": [
+          { "label": "Delete", "color": "#FF0000" },
+          { "label": "Edit", "color": "#007AFF" }
+        ]
+      },
+      "children": [
+        {
+          "id": "content-1",
+          "type": "row",
+          "children": [
+            {
+              "id": "text-1",
+              "type": "text",
+              "props": {
+                "content": "Swipe left to reveal actions"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Swipeable Row displays a row with hidden swipe actions
+- Swiping left reveals right-side action buttons
+- Right actions array contains objects with `label` and `color` properties
+- Action buttons are hidden behind the row content
+- In production needs react-native-gesture-handler for swipe gesture detection
+- Ideal for list items that need delete, edit, or other actions

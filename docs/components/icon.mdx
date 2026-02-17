@@ -1,0 +1,59 @@
+---
+title: Icon
+description: Icon display
+---
+
+# Icon
+
+Component that displays an icon, either as a text placeholder or an image icon. Use Icon to show visual indicators, status symbols, or decorative elements.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `name` | `string` | — | Icon name for text placeholder display |
+| `uri` | `string` | — | Icon image URL or URI |
+| `size` | `number` | `24` | Icon size in pixels |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "row",
+  "props": {
+    "gap": 8
+  },
+  "children": [
+    {
+      "id": "icon-1",
+      "type": "icon",
+      "props": {
+        "name": "star",
+        "size": 20
+      }
+    },
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "Featured item"
+      }
+    },
+    {
+      "id": "icon-2",
+      "type": "icon",
+      "props": {
+        "uri": "https://example.com/icon.png",
+        "size": 24
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Use `name` prop for text-based icon placeholders
+- Use `uri` prop for image-based icons
+- Size defaults to 24 pixels if not specified

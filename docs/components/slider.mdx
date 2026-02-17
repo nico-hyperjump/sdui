@@ -1,0 +1,58 @@
+---
+title: Slider
+description: Range value display
+---
+
+# Slider
+
+Range value display component that shows a visual track with a thumb position indicating the current value. Supports min/max bounds, step size, and optional label. Visual-only implementation — in production, add gesture handling for interactive dragging.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `min` | `number` | `0` | Minimum value |
+| `max` | `number` | `100` | Maximum value |
+| `value` | `number` | — | Current value (determines thumb position) |
+| `step` | `number` | — | Optional step size for value increments |
+| `label` | `string` | — | Optional label text displayed above the slider |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "slider-1",
+      "type": "slider",
+      "props": {
+        "min": 0,
+        "max": 100,
+        "value": 50,
+        "label": "Volume"
+      }
+    },
+    {
+      "id": "slider-2",
+      "type": "slider",
+      "props": {
+        "min": 0,
+        "max": 10,
+        "value": 7,
+        "step": 1
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Slider displays a visual track with a thumb position
+- Thumb position indicates the current value
+- Supports min/max bounds and optional step size
+- Optional label can be displayed above the slider
+- Default min is 0, max is 100
+- Visual-only implementation — in production, add gesture handling for interactive dragging

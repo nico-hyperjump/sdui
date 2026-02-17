@@ -1,0 +1,64 @@
+---
+title: Comparison Table
+description: Side-by-side comparison
+---
+
+# Comparison Table
+
+Component that displays a side-by-side comparison table with header row containing column names and data rows below. Highlighted column receives accent background color. Use Comparison Table for plan comparisons, feature matrices, pricing tables, or any screen requiring structured comparison data.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `columns` | `string[]` | — | Array of column header names |
+| `rows` | `string[][]` | — | Array of row arrays, where each row is an array of cell strings |
+| `highlightedColumn` | `number` | — | Zero-based index of the column to highlight with accent background |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "table-1",
+      "type": "comparison_table",
+      "props": {
+        "columns": ["Basic", "Pro", "Enterprise"],
+        "rows": [
+          ["$9/month", "$29/month", "$99/month"],
+          ["10 projects", "50 projects", "Unlimited"],
+          ["Basic support", "Priority support", "24/7 support"],
+          ["—", "Advanced analytics", "Custom integrations"]
+        ],
+        "highlightedColumn": 1
+      }
+    },
+    {
+      "id": "table-2",
+      "type": "comparison_table",
+      "props": {
+        "columns": ["Feature A", "Feature B", "Feature C"],
+        "rows": [
+          ["✓", "✓", "—"],
+          ["✓", "—", "✓"],
+          ["—", "✓", "✓"]
+        ],
+        "highlightedColumn": 0
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Header row displays column names
+- Data rows contain arrays of cell strings
+- Highlighted column receives accent background color
+- Use for plan comparisons, feature matrices, pricing tables, or structured comparison data
+- Columns array defines the number of columns and their headers
+- Rows array must have consistent length (same number of cells as columns)
+- HighlightedColumn is zero-based (0 = first column, 1 = second column, etc.)

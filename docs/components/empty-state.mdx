@@ -1,0 +1,47 @@
+---
+title: Empty State
+description: Placeholder for empty content
+---
+
+# Empty State
+
+Placeholder component for empty content states. Displays an image, title, subtitle, and optional action button. Used for empty cart, no search results, empty lists, or any scenario where content is missing.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `imageUri` | `string` | — | Image URL for the empty state illustration |
+| `image` | `string` | — | Alternative prop name for imageUri |
+| `title` | `string` | — | Main title text |
+| `subtitle` | `string` | — | Secondary description text |
+| `actionLabel` | `string` | `"Try Again"` | Label text for the action button |
+| `action` | `object` | — | Action configuration for the CTA button |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "empty_state",
+  "props": {
+    "imageUri": "https://example.com/empty-cart.png",
+    "title": "Your cart is empty",
+    "subtitle": "Add some items to get started",
+    "actionLabel": "Browse Products",
+    "action": {
+      "type": "navigate",
+      "screen": "products"
+    }
+  }
+}
+```
+
+## Notes
+
+- Empty State displays a placeholder for empty content
+- Supports both `imageUri` and `image` props for the illustration
+- Title and subtitle provide context about the empty state
+- Default action label is "Try Again" but can be customized
+- Supports action configuration for navigation or custom interactions
+- Used for empty cart, no search results, empty lists, error states

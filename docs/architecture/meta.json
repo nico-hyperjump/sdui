@@ -1,0 +1,13 @@
+{
+  "title": "Architecture",
+  "icon": "Layers",
+  "pages": [
+    "index",
+    "data-flow",
+    "data-sources",
+    "sequence-diagrams",
+    "api-reference",
+    "database-schema"
+  ],
+  "defaultOpen": true
+}

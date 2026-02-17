@@ -1,0 +1,57 @@
+---
+title: QR Code
+description: QR code display
+---
+
+# QR Code
+
+Component that displays a QR code from an encoded string value. Placeholder implementation — in production use a QR rendering library. Shows the encoded value below the QR code. Use QR Code for payment screens, sharing links, authentication, or any screen requiring quick data transfer via scanning.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `value` | `string` | — | String value to encode in QR code |
+| `size` | `number` | `160` | QR code size in pixels (width and height) |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "qr-1",
+      "type": "qr_code",
+      "props": {
+        "value": "https://example.com/product/12345",
+        "size": 200
+      }
+    },
+    {
+      "id": "qr-2",
+      "type": "qr_code",
+      "props": {
+        "value": "payment://transaction/abc123",
+        "size": 160
+      }
+    },
+    {
+      "id": "qr-3",
+      "type": "qr_code",
+      "props": {
+        "value": "wifi:T:WPA;S:MyNetwork;P:password123;;"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Placeholder implementation — in production use a QR rendering library
+- Shows the encoded value below the QR code for verification
+- Use for payment screens, sharing links, WiFi credentials, authentication codes, or product information
+- Size controls both width and height (QR codes are square)
+- Value can be any string: URLs, payment codes, authentication tokens, or custom data

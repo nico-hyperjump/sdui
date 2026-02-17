@@ -1,0 +1,64 @@
+---
+title: Map View
+description: Embedded map placeholder
+---
+
+# Map View
+
+Component that displays an embedded map placeholder showing coordinates and map style. Placeholder implementation — in production replace with react-native-maps. Use Map View for location displays, property listings, or any screen requiring geographic visualization.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `latitude` | `number` | — | Latitude coordinate |
+| `longitude` | `number` | — | Longitude coordinate |
+| `zoom` | `number` | — | Zoom level |
+| `markers` | `array` | — | Array of marker objects |
+| `style` | `"standard" \| "satellite"` | `"standard"` | Map style variant |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "map-1",
+      "type": "map_view",
+      "props": {
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "zoom": 12,
+        "style": "standard",
+        "markers": [
+          {
+            "latitude": 37.7749,
+            "longitude": -122.4194,
+            "title": "San Francisco"
+          }
+        ]
+      }
+    },
+    {
+      "id": "map-2",
+      "type": "map_view",
+      "props": {
+        "latitude": 40.7128,
+        "longitude": -74.0060,
+        "zoom": 15,
+        "style": "satellite"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Placeholder implementation — in production replace with react-native-maps
+- Shows coordinates and map style
+- Use for location displays, property listings, delivery tracking, or any geographic visualization
+- Supports standard and satellite map styles
+- Markers array allows multiple location points on the map

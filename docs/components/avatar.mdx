@@ -1,0 +1,61 @@
+---
+title: Avatar
+description: Circular profile image
+---
+
+# Avatar
+
+Circular profile image component that displays a user's profile picture or fallback initials. Use Avatar to show user profiles, contact lists, or any circular image display.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `uri` | `string` | — | Image URL for the avatar |
+| `image` | `string` | — | Alternative prop name for uri |
+| `size` | `number` | `48` | Avatar size in pixels |
+| `fallbackInitials` | `string` | — | Fallback text to display if image fails to load |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "row",
+  "children": [
+    {
+      "id": "avatar-1",
+      "type": "avatar",
+      "props": {
+        "uri": "https://example.com/profile.jpg",
+        "size": 64,
+        "fallbackInitials": "JD"
+      }
+    },
+    {
+      "id": "avatar-2",
+      "type": "avatar",
+      "props": {
+        "image": "https://example.com/user.jpg",
+        "size": 48
+      }
+    },
+    {
+      "id": "avatar-3",
+      "type": "avatar",
+      "props": {
+        "fallbackInitials": "AB",
+        "size": 56
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Avatar displays a circular image or initials
+- Supports both `uri` and `image` props for the image URL
+- Fallback initials are shown if image fails to load or is not provided
+- Default size is 48 pixels but can be customized
+- Use for user profiles, contact lists, and circular image displays

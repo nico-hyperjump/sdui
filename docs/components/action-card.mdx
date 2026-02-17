@@ -1,0 +1,55 @@
+---
+title: Action Card
+description: Tappable card component
+---
+
+# Action Card
+
+Simple tappable card component that navigates or performs an action when tapped. Use Action Card for quick navigation, category selection, or interactive content cards.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `title` | `string` | — | Card title text |
+| `action` | `object` | — | Action configuration (navigate, webview, custom) |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "action-card-1",
+      "type": "action_card",
+      "props": {
+        "title": "View Products",
+        "action": {
+          "type": "navigate",
+          "screen": "products"
+        }
+      }
+    },
+    {
+      "id": "action-card-2",
+      "type": "action_card",
+      "props": {
+        "title": "Open Website",
+        "action": {
+          "type": "webview",
+          "url": "https://example.com"
+        }
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Action Card is a simple card that navigates on tap
+- Supports action types: navigate, webview, and custom actions
+- Use for quick navigation or category selection
+- Minimal styling with tappable interaction

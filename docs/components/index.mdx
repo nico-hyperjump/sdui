@@ -1,0 +1,71 @@
+---
+title: Overview
+description: Complete reference for all SDUI component types available in the platform
+icon: Blocks
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+
+# Component Library
+
+The SDUI platform ships **53 component types** that admins can compose into screens via the CMS. Every component is defined in the `sduiComponentTypeSchema` Zod enum in `@workspace/sdui-schema` and implemented as a React Native component in `@workspace/sdui-components`.
+
+## Categories
+
+| Category          | Count | Purpose                                                  |
+| ----------------- | ----- | -------------------------------------------------------- |
+| **Layout**        | 5     | Structural containers — stacks, rows, columns, scrolling |
+| **Content**       | 4     | Static display — text, images, icons, dividers           |
+| **Interactive**   | 3     | Tappable elements — buttons, cards, links                |
+| **Composite**     | 6     | Pre-built patterns — hero banners, product cards, grids  |
+| **Foundation**    | 10    | High-impact additions — carousels, chips, search, forms  |
+| **Engagement**    | 8     | Promotional patterns — stories, video, countdowns, tabs  |
+| **Forms & Input** | 8     | User input — steppers, checkboxes, sliders, date pickers |
+| **Specialized**   | 9     | Domain-specific — maps, charts, QR codes, skeletons      |
+| **Overlay**       | 1     | Screen-level modals, bottom sheets, fullscreen overlays  |
+
+## Common Schema
+
+Every component shares this base structure:
+
+```json title="SduiComponent"
+{
+  "id": "unique-id",
+  "type": "component_type",
+  "props": {},
+  "children": [],
+  "action": {
+    "type": "navigate",
+    "screen": "/target"
+  },
+  "analytics": {
+    "impression": "event_name",
+    "click": "event_name"
+  },
+  "conditions": [
+    { "field": "user_segment", "operator": "eq", "value": "premium" }
+  ]
+}
+```
+
+## Action Types
+
+Components can trigger actions on user interaction:
+
+| Action            | Fields              | Description                                |
+| ----------------- | ------------------- | ------------------------------------------ |
+| `navigate`        | `screen`, `params?` | Navigate to another screen in the app      |
+| `webview`         | `url`, `title?`     | Open a URL in the in-app browser           |
+| `custom`          | `name`, `payload?`  | Trigger an app-defined custom action       |
+| `show_overlay`    | `overlayId`         | Show a screen-level overlay by its id      |
+| `dismiss_overlay` | `overlayId?`        | Dismiss an overlay (topmost if id omitted) |
+
+## Using Components
+
+Browse each component page for its **props**, **JSON example**, and **usage notes**. Use the sidebar to navigate by category.
+
+<Callout type="info">
+  All props values are passed as a flat Record of string to unknown. The
+  renderer reads them using type-safe helpers: propStr, propNum, propBool, and
+  propArr.
+</Callout>

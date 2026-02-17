@@ -1,0 +1,57 @@
+---
+title: Stepper
+description: Quantity selector
+---
+
+# Stepper
+
+Quantity selector component that displays a value with plus and minus buttons to increment or decrement. Includes min/max bounds and step size configuration. Ideal for cart quantity, counters, or any numeric input that needs increment/decrement controls.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `value` | `number` | `1` | Current numeric value |
+| `min` | `number` | `0` | Minimum allowed value |
+| `max` | `number` | `99` | Maximum allowed value |
+| `step` | `number` | `1` | Increment/decrement step size |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "row",
+  "children": [
+    {
+      "id": "stepper-1",
+      "type": "stepper",
+      "props": {
+        "value": 1,
+        "min": 0,
+        "max": 10,
+        "step": 1
+      }
+    },
+    {
+      "id": "stepper-2",
+      "type": "stepper",
+      "props": {
+        "value": 5,
+        "min": 1,
+        "max": 99,
+        "step": 5
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Stepper displays a value with plus/minus buttons
+- Plus button increments the value, minus button decrements it
+- Value is constrained between min and max bounds
+- Step size determines how much the value changes per click
+- Default value is 1, min is 0, max is 99, step is 1
+- Ideal for cart quantity, counters, numeric inputs

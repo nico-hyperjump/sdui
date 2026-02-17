@@ -1,0 +1,78 @@
+---
+title: Action Grid
+description: Wrapped row grid layout
+---
+
+# Action Grid
+
+Flexible grid component that arranges children in a wrapped row layout. Use Action Grid to create category grids, icon grids, or any multi-column layout that wraps to multiple rows.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| — | — | — | No custom props |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "grid-1",
+      "type": "action_grid",
+      "children": [
+        {
+          "id": "item-1",
+          "type": "stack",
+          "children": [
+            {
+              "id": "icon-1",
+              "type": "icon",
+              "props": {
+                "name": "home"
+              }
+            },
+            {
+              "id": "text-1",
+              "type": "text",
+              "props": {
+                "content": "Home"
+              }
+            }
+          ]
+        },
+        {
+          "id": "item-2",
+          "type": "stack",
+          "children": [
+            {
+              "id": "icon-2",
+              "type": "icon",
+              "props": {
+                "name": "search"
+              }
+            },
+            {
+              "id": "text-2",
+              "type": "text",
+              "props": {
+                "content": "Search"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Action Grid arranges children in a flex-wrap row layout
+- Children automatically wrap to new rows when space is limited
+- Use with icon+label children for category grids
+- No custom props needed; layout is handled automatically

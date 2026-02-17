@@ -1,0 +1,62 @@
+---
+title: Story Circle
+description: Instagram-style circular thumbnail
+---
+
+# Story Circle
+
+Instagram-style circular thumbnail component that displays a circular image with a ring border. The border color changes when the story has been seen. Typically rendered in a horizontal scroll row.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `imageUri` | `string` | — | Image URL for the story thumbnail |
+| `image` | `string` | — | Alternative prop name for imageUri |
+| `label` | `string` | — | Label text displayed below the circle |
+| `seen` | `boolean` | `false` | Whether the story has been viewed (affects border color) |
+| `action` | `object` | — | Action configuration (navigate, webview, custom) |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "scroll_view",
+  "props": {
+    "horizontal": true
+  },
+  "children": [
+    {
+      "id": "story-1",
+      "type": "story_circle",
+      "props": {
+        "imageUri": "https://example.com/story1.jpg",
+        "label": "User 1",
+        "seen": false,
+        "action": {
+          "type": "navigate",
+          "screen": "story-viewer"
+        }
+      }
+    },
+    {
+      "id": "story-2",
+      "type": "story_circle",
+      "props": {
+        "image": "https://example.com/story2.jpg",
+        "label": "User 2",
+        "seen": true
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Story Circle displays a circular thumbnail with a ring border
+- Ring border color changes when `seen` is true
+- Supports both `imageUri` and `image` props for the image URL
+- Typically rendered in a horizontal scroll row for story feeds
+- Supports action configuration for navigation or custom interactions

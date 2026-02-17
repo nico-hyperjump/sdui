@@ -1,0 +1,69 @@
+---
+title: Carousel
+description: Swipeable horizontal pane
+---
+
+# Carousel
+
+Swipeable horizontal carousel component that displays multiple slides. Use Carousel for image galleries, featured content, promotional banners, or any horizontally scrollable content.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `autoPlay` | `boolean` | `false` | Automatically advance slides |
+| `interval` | `number` | `3000` | Auto-play interval in milliseconds |
+| `showIndicators` | `boolean` | `true` | Show dot indicators below the carousel |
+| `loop` | `boolean` | `false` | Loop back to first slide after the last |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "carousel-1",
+      "type": "carousel",
+      "props": {
+        "autoPlay": true,
+        "interval": 5000,
+        "showIndicators": true,
+        "loop": true
+      },
+      "children": [
+        {
+          "id": "slide-1",
+          "type": "image",
+          "props": {
+            "uri": "https://example.com/slide1.jpg"
+          }
+        },
+        {
+          "id": "slide-2",
+          "type": "image",
+          "props": {
+            "uri": "https://example.com/slide2.jpg"
+          }
+        },
+        {
+          "id": "slide-3",
+          "type": "image",
+          "props": {
+            "uri": "https://example.com/slide3.jpg"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Carousel uses children as slides
+- Dot indicators are displayed below the carousel by default
+- Auto-play advances slides automatically at the specified interval
+- Loop mode allows continuous scrolling from last to first slide
+- Swipeable for manual navigation

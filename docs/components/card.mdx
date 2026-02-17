@@ -1,0 +1,52 @@
+---
+title: Card
+description: Container card
+---
+
+# Card
+
+Container component that wraps children in a rounded card with padding and background. Use Card to group related content in a visually distinct container.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| — | — | — | No custom props |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "card-1",
+      "type": "card",
+      "children": [
+        {
+          "id": "text-1",
+          "type": "text",
+          "props": {
+            "content": "Card Title",
+            "variant": "heading"
+          }
+        },
+        {
+          "id": "text-2",
+          "type": "text",
+          "props": {
+            "content": "Card content goes here"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Card provides rounded corners, padding, and background styling
+- Use Card to visually group related content
+- No custom props needed; styling is applied automatically

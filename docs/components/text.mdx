@@ -1,0 +1,56 @@
+---
+title: Text
+description: Text block
+---
+
+# Text
+
+Component that displays text content with optional styling variants. Use Text to render any text content in your screen.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `content` | `string` | — | Text content to display |
+| `text` | `string` | — | Alternative prop name for content |
+| `variant` | `"body" \| "heading" \| "title"` | `"body"` | Text style variant. Heading and title variants render at 20px bold |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "text-1",
+      "type": "text",
+      "props": {
+        "content": "Page Title",
+        "variant": "title"
+      }
+    },
+    {
+      "id": "text-2",
+      "type": "text",
+      "props": {
+        "content": "Section Heading",
+        "variant": "heading"
+      }
+    },
+    {
+      "id": "text-3",
+      "type": "text",
+      "props": {
+        "content": "Regular body text content"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Both `content` and `text` props are supported
+- Heading and title variants render at 20px with bold weight
+- Body variant uses default text styling

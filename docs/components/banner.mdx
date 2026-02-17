@@ -1,0 +1,62 @@
+---
+title: Banner
+description: Notification strip
+---
+
+# Banner
+
+Notification strip component that displays a colored message banner with optional dismiss functionality. Supports different variants for info, warning, success, and error states.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `message` | `string` | — | Banner message text |
+| `variant` | `"info" \| "warning" \| "success" \| "error"` | `"info"` | Visual variant that determines background color |
+| `dismissible` | `boolean` | `true` | Whether the banner can be dismissed |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "stack",
+  "children": [
+    {
+      "id": "banner-1",
+      "type": "banner",
+      "props": {
+        "message": "Welcome to our app!",
+        "variant": "info",
+        "dismissible": true
+      }
+    },
+    {
+      "id": "banner-2",
+      "type": "banner",
+      "props": {
+        "message": "Your order has been confirmed",
+        "variant": "success",
+        "dismissible": false
+      }
+    },
+    {
+      "id": "banner-3",
+      "type": "banner",
+      "props": {
+        "message": "Please check your connection",
+        "variant": "error"
+      }
+    }
+  ]
+}
+```
+
+## Notes
+
+- Banner displays a colored notification strip
+- Supports four variants: info, warning, success, and error
+- Each variant has a distinct background color
+- Dismissible banners show a close button (default: true)
+- Dismiss button hides the banner when tapped
+- Use for system notifications, alerts, and status messages

@@ -1,0 +1,67 @@
+---
+title: Pull to Refresh
+description: Pull-to-refresh wrapper
+---
+
+# Pull to Refresh
+
+Pull-to-refresh wrapper component that wraps children in a ScrollView with pull-to-refresh functionality. When the user pulls down, it triggers a refresh action. In production, connect the refresh handler to re-fetch screen data or reload content.
+
+## Props
+
+| Prop | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| — | — | — | No custom props. Wraps children in a ScrollView. |
+
+## Example
+
+```json title="Screen JSON"
+{
+  "id": "example-1",
+  "type": "pull_to_refresh",
+  "children": [
+    {
+      "id": "content-1",
+      "type": "stack",
+      "children": [
+        {
+          "id": "text-1",
+          "type": "text",
+          "props": {
+            "content": "Pull down to refresh"
+          }
+        },
+        {
+          "id": "list-1",
+          "type": "stack",
+          "children": [
+            {
+              "id": "item-1",
+              "type": "text",
+              "props": {
+                "content": "Item 1"
+              }
+            },
+            {
+              "id": "item-2",
+              "type": "text",
+              "props": {
+                "content": "Item 2"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Notes
+
+- Pull to Refresh wraps children in a ScrollView
+- Pulling down triggers a refresh action
+- No custom props — simply wraps content
+- In production, connect refresh handler to re-fetch screen data
+- Ideal for lists, feeds, or any scrollable content that needs refresh
+- Refresh indicator appears when pulling down
