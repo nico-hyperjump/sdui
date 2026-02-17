@@ -14,5 +14,17 @@ export type {
 } from "./services/data-provider-registry";
 export { resolveDataSources } from "./services/data-resolver";
 export { resolveTemplate } from "./services/template-resolver";
-export { createMarketingProvider } from "./providers/marketing-provider";
-export { createAccountProvider } from "./providers/account-provider";
+export {
+  createMarketingProvider,
+  marketingProviderSchema,
+} from "./providers/marketing-provider";
+export {
+  createAccountProvider,
+  accountProviderSchema,
+} from "./providers/account-provider";
+export { DataProviderSchemaRegistry } from "./services/provider-schema";
+export type {
+  DataProviderSchema,
+  DataProviderFieldSchema,
+  DataProviderParamSchema,
+} from "./services/provider-schema";

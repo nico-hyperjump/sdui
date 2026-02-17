@@ -4,12 +4,15 @@ import type {
   ScreenInput,
   SduiComponent,
   SduiOverlay,
+  SduiDataSource,
+  DataProviderSchema,
 } from "@workspace/sdui-schema";
 import { BRAND_IDS, formatBrand } from "@workspace/sdui-schema";
 import { apiClient } from "@/api-client";
 import { ArrowLeft, Save, Code, Eye } from "lucide-react";
 import { ScreenBuilder } from "@/components/screen-builder";
 import { OverlayPanel } from "@/components/screen-builder/overlay-panel";
+import { DataSourcePanel } from "@/components/screen-builder/data-source-panel";
 
 /**
  * Screen editor page with a visual drag-and-drop builder.
@@ -32,6 +35,10 @@ export function ScreenEditorPage() {
   const [saving, setSaving] = useState(false);
   const [showJson, setShowJson] = useState(false);
   const [availableScreenIds, setAvailableScreenIds] = useState<string[]>([]);
+  const [dataSources, setDataSources] = useState<SduiDataSource[]>([]);
+  const [providerSchemas, setProviderSchemas] = useState<DataProviderSchema[]>(
+    [],
+  );
 
   useEffect(() => {
     if (isNew) return;
@@ -52,6 +59,14 @@ export function ScreenEditorPage() {
           setOverlays(Array.isArray(parsed) ? parsed : []);
         } catch {
           setOverlays([]);
+        }
+        try {
+          const parsedDs = screen.dataSources
+            ? (JSON.parse(screen.dataSources) as SduiDataSource[])
+            : [];
+          setDataSources(Array.isArray(parsedDs) ? parsedDs : []);
+        } catch {
+          setDataSources([]);
         }
         setJsonError(null);
       } catch {
@@ -76,6 +91,23 @@ export function ScreenEditorPage() {
         setAvailableScreenIds(ids);
       } catch {
         /* non-critical — picker will just be empty */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Fetch provider schemas for the data-binding picker and data source panel.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const schemas = await apiClient.getProviders();
+        if (cancelled) return;
+        setProviderSchemas(schemas);
+      } catch {
+        /* non-critical — data-binding picker will just be empty */
       }
     })();
     return () => {
@@ -121,6 +153,7 @@ export function ScreenEditorPage() {
       segment: segment.trim() || null,
       components: JSON.stringify(components),
       overlays: overlays.length > 0 ? JSON.stringify(overlays) : null,
+      dataSources: dataSources.length > 0 ? JSON.stringify(dataSources) : null,
       published,
     };
     setSaving(true);
@@ -275,10 +308,19 @@ export function ScreenEditorPage() {
         value={parsedComponents}
         onChange={handleComponentsChange}
         screenIds={availableScreenIds}
+        dataSources={dataSources}
+        providerSchemas={providerSchemas}
       />
 
-      {/* Overlay management */}
-      <div className="mt-4">
+      {/* Data Sources & Overlays side-by-side */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="rounded-xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <DataSourcePanel
+            dataSources={dataSources}
+            onChange={setDataSources}
+            providerSchemas={providerSchemas}
+          />
+        </div>
         <OverlayPanel overlays={overlays} onChange={setOverlays} />
       </div>
 

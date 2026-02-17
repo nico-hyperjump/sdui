@@ -4,9 +4,12 @@ import type {
   SduiComponent,
   SduiAction,
   SduiCondition,
+  SduiDataSource,
+  DataProviderSchema,
 } from "@workspace/sdui-schema";
 import { COMPONENT_REGISTRY } from "./component-registry";
 import type { PropFieldDef, BuilderAction } from "./types";
+import { DataBindingPicker } from "./data-binding-picker";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -20,6 +23,10 @@ export interface PropertyPanelProps {
   dispatch: React.Dispatch<BuilderAction>;
   /** Available screen IDs for the navigate action picker. */
   screenIds?: string[];
+  /** Data sources attached to this screen (for the data-binding picker). */
+  dataSources?: SduiDataSource[];
+  /** Available provider schemas from the catalog API. */
+  providerSchemas?: DataProviderSchema[];
 }
 
 // ---------------------------------------------------------------------------
@@ -48,6 +55,9 @@ const CONDITION_OPERATORS = [
 // Sub-components
 // ---------------------------------------------------------------------------
 
+/** Pattern to detect template expressions in a string value. */
+const HAS_EXPRESSION = /\{\{[^}]+\}\}/;
+
 /**
  * Renders the correct input widget for a property field definition.
  */
@@ -55,17 +65,27 @@ function PropField({
   field,
   value,
   onChange,
+  dataSources = [],
+  providerSchemas = [],
 }: {
   field: PropFieldDef;
   value: unknown;
   onChange: (name: string, value: unknown) => void;
+  dataSources?: SduiDataSource[];
+  providerSchemas?: DataProviderSchema[];
 }) {
   const id = `prop-${field.name}`;
 
   switch (field.type) {
     case "string":
     case "url":
-    case "color":
+    case "color": {
+      const stringValue = typeof value === "string" ? value : "";
+      const isBound = HAS_EXPRESSION.test(stringValue);
+      const showBindingPicker =
+        (field.type === "string" || field.type === "url") &&
+        dataSources.length > 0;
+
       return (
         <div>
           <label
@@ -74,22 +94,50 @@ function PropField({
           >
             {field.label}
           </label>
-          <input
-            id={id}
-            type={
-              field.type === "url"
-                ? "url"
-                : field.type === "color"
-                  ? "color"
-                  : "text"
-            }
-            value={typeof value === "string" ? value : ""}
-            onChange={(e) => onChange(field.name, e.target.value)}
-            className="w-full rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
-            data-testid={`prop-field-${field.name}`}
-          />
+          <div className="flex items-center gap-1">
+            <input
+              id={id}
+              type={
+                field.type === "url"
+                  ? "url"
+                  : field.type === "color"
+                    ? "color"
+                    : "text"
+              }
+              value={stringValue}
+              onChange={(e) => onChange(field.name, e.target.value)}
+              className={`w-full rounded-md border px-2.5 py-1.5 text-xs focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 ${
+                isBound
+                  ? "border-primary-300 bg-primary-50 text-primary-700 dark:border-primary-600 dark:bg-primary-900/20 dark:text-primary-300"
+                  : "border-slate-200 bg-white text-slate-700"
+              }`}
+              data-testid={`prop-field-${field.name}`}
+            />
+            {showBindingPicker && (
+              <DataBindingPicker
+                dataSources={dataSources}
+                providerSchemas={providerSchemas}
+                onSelect={(expression) => {
+                  const current = stringValue;
+                  onChange(
+                    field.name,
+                    current ? `${current}${expression}` : expression,
+                  );
+                }}
+              />
+            )}
+          </div>
+          {isBound && (
+            <p
+              className="mt-0.5 text-[10px] text-primary-500 dark:text-primary-400"
+              data-testid={`prop-field-${field.name}-bound`}
+            >
+              Dynamic value
+            </p>
+          )}
         </div>
       );
+    }
 
     case "number":
       return (
@@ -466,6 +514,8 @@ export function PropertyPanel({
   component,
   dispatch,
   screenIds = [],
+  dataSources = [],
+  providerSchemas = [],
 }: PropertyPanelProps) {
   const [customPropsJson, setCustomPropsJson] = useState("");
 
@@ -601,6 +651,8 @@ export function PropertyPanel({
                 field={field}
                 value={component.props?.[field.name]}
                 onChange={handlePropChange}
+                dataSources={dataSources}
+                providerSchemas={providerSchemas}
               />
             ))}
           </fieldset>

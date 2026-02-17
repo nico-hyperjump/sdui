@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import type { SduiComponent } from "@workspace/sdui-schema";
+import type {
+  SduiComponent,
+  SduiDataSource,
+  DataProviderSchema,
+} from "@workspace/sdui-schema";
 import type { BuilderAction } from "./types";
 import { PropertyPanel } from "./property-panel";
 
@@ -18,10 +22,35 @@ function makeComponent(overrides?: Partial<SduiComponent>): SduiComponent {
   };
 }
 
+/** Creates minimal data sources and schemas for binding picker tests. */
+function createBindingContext(): {
+  dataSources: SduiDataSource[];
+  providerSchemas: DataProviderSchema[];
+} {
+  return {
+    dataSources: [{ id: "account", provider: "account" }],
+    providerSchemas: [
+      {
+        name: "account",
+        label: "Account Data",
+        description: "Account info",
+        fields: [
+          { name: "name", label: "Account Name", type: "string" },
+          { name: "balance", label: "Balance", type: "number" },
+        ],
+      },
+    ],
+  };
+}
+
 function renderPanel(
   component: SduiComponent | null,
   dispatchOverride?: React.Dispatch<BuilderAction>,
   screenIds?: string[],
+  options?: {
+    dataSources?: SduiDataSource[];
+    providerSchemas?: DataProviderSchema[];
+  },
 ) {
   const dispatch = dispatchOverride ?? vi.fn();
   return {
@@ -31,6 +60,8 @@ function renderPanel(
         component={component}
         dispatch={dispatch}
         screenIds={screenIds}
+        dataSources={options?.dataSources}
+        providerSchemas={options?.providerSchemas}
       />,
     ),
   };
@@ -422,5 +453,108 @@ describe("PropertyPanel", () => {
         (call[0] as BuilderAction).type === "UPDATE_COMPONENT",
     );
     expect(updateCalls).toHaveLength(0);
+  });
+
+  it("renders the data-binding picker for string fields when data sources exist", () => {
+    // Setup
+    const { dataSources, providerSchemas } = createBindingContext();
+
+    // Act
+    renderPanel(makeComponent(), undefined, undefined, {
+      dataSources,
+      providerSchemas,
+    });
+
+    // Assert
+    expect(screen.getByTestId("data-binding-picker")).toBeDefined();
+  });
+
+  it("does not render the data-binding picker when no data sources exist", () => {
+    // Act
+    renderPanel(makeComponent());
+
+    // Assert
+    expect(screen.queryByTestId("data-binding-picker")).toBeNull();
+  });
+
+  it("shows 'Dynamic value' indicator for fields with template expressions", () => {
+    // Setup
+    const { dataSources, providerSchemas } = createBindingContext();
+
+    // Act
+    renderPanel(
+      makeComponent({ props: { content: "{{account.name}}" } }),
+      undefined,
+      undefined,
+      { dataSources, providerSchemas },
+    );
+
+    // Assert
+    expect(screen.getByTestId("prop-field-content-bound")).toBeDefined();
+    expect(screen.getByTestId("prop-field-content-bound").textContent).toBe(
+      "Dynamic value",
+    );
+  });
+
+  it("does not show 'Dynamic value' indicator for static values", () => {
+    // Setup
+    const { dataSources, providerSchemas } = createBindingContext();
+
+    // Act
+    renderPanel(
+      makeComponent({ props: { content: "Hello world" } }),
+      undefined,
+      undefined,
+      { dataSources, providerSchemas },
+    );
+
+    // Assert
+    expect(screen.queryByTestId("prop-field-content-bound")).toBeNull();
+  });
+
+  it("inserts expression into field value when binding picker selects a field", () => {
+    // Setup
+    const dispatch = vi.fn();
+    const { dataSources, providerSchemas } = createBindingContext();
+    renderPanel(
+      makeComponent({ props: { content: "" } }),
+      dispatch,
+      undefined,
+      { dataSources, providerSchemas },
+    );
+
+    // Act - open picker and select a field
+    fireEvent.click(screen.getByTestId("data-binding-trigger"));
+    fireEvent.click(screen.getByTestId("binding-field-account.name"));
+
+    // Assert
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "UPDATE_COMPONENT",
+      id: "text_1",
+      updates: { props: { content: "{{account.name}}" } },
+    });
+  });
+
+  it("appends expression to existing field value", () => {
+    // Setup
+    const dispatch = vi.fn();
+    const { dataSources, providerSchemas } = createBindingContext();
+    renderPanel(
+      makeComponent({ props: { content: "Hello " } }),
+      dispatch,
+      undefined,
+      { dataSources, providerSchemas },
+    );
+
+    // Act - open picker and select a field
+    fireEvent.click(screen.getByTestId("data-binding-trigger"));
+    fireEvent.click(screen.getByTestId("binding-field-account.name"));
+
+    // Assert
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "UPDATE_COMPONENT",
+      id: "text_1",
+      updates: { props: { content: "Hello {{account.name}}" } },
+    });
   });
 });

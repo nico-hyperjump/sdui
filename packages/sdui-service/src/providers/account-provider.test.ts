@@ -1,5 +1,8 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { createAccountProvider } from "./account-provider";
+import {
+  createAccountProvider,
+  accountProviderSchema,
+} from "./account-provider";
 
 describe("createAccountProvider", () => {
   afterEach(() => {
@@ -62,5 +65,31 @@ describe("createAccountProvider", () => {
     await expect(
       provider({}, { brand: "brand_a", userId: "user-1" }),
     ).rejects.toThrow("Account API returned 500");
+  });
+});
+
+describe("accountProviderSchema", () => {
+  it("has the correct provider name", () => {
+    // Act & Assert
+    expect(accountProviderSchema.name).toBe("account");
+  });
+
+  it("declares expected fields", () => {
+    // Act
+    const fieldNames = accountProviderSchema.fields.map((f) => f.name);
+
+    // Assert
+    expect(fieldNames).toContain("name");
+    expect(fieldNames).toContain("planName");
+    expect(fieldNames).toContain("planType");
+    expect(fieldNames).toContain("balance");
+    expect(fieldNames).toContain("currency");
+    expect(fieldNames).toContain("dataUsedGb");
+    expect(fieldNames).toContain("dataLimitGb");
+  });
+
+  it("has no params (account needs no configuration)", () => {
+    // Act & Assert
+    expect(accountProviderSchema.params).toBeUndefined();
   });
 });

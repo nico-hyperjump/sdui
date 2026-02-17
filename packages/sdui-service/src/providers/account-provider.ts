@@ -1,4 +1,27 @@
 import type { DataProviderFn } from "../services/data-provider-registry";
+import type { DataProviderSchema } from "@workspace/sdui-schema";
+
+/**
+ * Schema describing the data shape returned by the account provider.
+ * Used by the CMS to populate the data-binding picker.
+ */
+export const accountProviderSchema: DataProviderSchema = {
+  name: "account",
+  label: "Account Data",
+  description:
+    "User account information including plan details, data usage, and balance.",
+  fields: [
+    { name: "name", label: "Account Name", type: "string" },
+    { name: "phoneNumber", label: "Phone Number", type: "string" },
+    { name: "planName", label: "Plan Name", type: "string" },
+    { name: "planType", label: "Plan Type", type: "string" },
+    { name: "dataLimitGb", label: "Data Limit (GB)", type: "number" },
+    { name: "dataUsedGb", label: "Data Used (GB)", type: "number" },
+    { name: "balance", label: "Balance", type: "number" },
+    { name: "currency", label: "Currency", type: "string" },
+    { name: "billDate", label: "Bill Date", type: "string" },
+  ],
+};
 
 /**
  * Default URL for the account source API.

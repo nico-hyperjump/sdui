@@ -6,8 +6,11 @@ import { logger } from "hono/logger";
 import {
   createSduiService,
   DataProviderRegistry,
+  DataProviderSchemaRegistry,
   createMarketingProvider,
   createAccountProvider,
+  marketingProviderSchema,
+  accountProviderSchema,
 } from "@workspace/sdui-service";
 import { createSduiCmsService } from "@workspace/sdui-cms-service";
 import { createSduiPrismaClient } from "@workspace/sdui-database";
@@ -18,6 +21,11 @@ const db = createSduiPrismaClient();
 const providerRegistry = new DataProviderRegistry();
 providerRegistry.register("marketing", createMarketingProvider());
 providerRegistry.register("account", createAccountProvider());
+
+// Register provider schemas so the CMS can offer a data-binding picker
+const schemaRegistry = new DataProviderSchemaRegistry();
+schemaRegistry.register(marketingProviderSchema);
+schemaRegistry.register(accountProviderSchema);
 
 const app = new Hono();
 
@@ -41,7 +49,7 @@ app.get("/health", (c) =>
 app.route("/api/v1", createSduiService({ db, providerRegistry }));
 
 // Admin CMS API -- CMS authenticates with admin JWT
-app.route("/api/cms", createSduiCmsService({ db }));
+app.route("/api/cms", createSduiCmsService({ db, schemaRegistry }));
 
 // Start server
 const port = Number(process.env["PORT"] ?? 3001);

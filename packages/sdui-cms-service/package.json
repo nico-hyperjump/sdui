@@ -19,7 +19,8 @@
   "dependencies": {
     "hono": "^4",
     "@workspace/sdui-database": "workspace:*",
-    "@workspace/sdui-schema": "workspace:*"
+    "@workspace/sdui-schema": "workspace:*",
+    "@workspace/sdui-service": "workspace:*"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

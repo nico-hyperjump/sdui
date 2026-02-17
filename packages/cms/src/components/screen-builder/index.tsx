@@ -9,7 +9,12 @@ import {
 } from "@dnd-kit/core";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 import { useState } from "react";
-import type { SduiComponent, SduiComponentType } from "@workspace/sdui-schema";
+import type {
+  SduiComponent,
+  SduiComponentType,
+  SduiDataSource,
+  DataProviderSchema,
+} from "@workspace/sdui-schema";
 import {
   useScreenBuilder,
   generateId,
@@ -32,6 +37,10 @@ export interface ScreenBuilderProps {
   onChange: (components: SduiComponent[]) => void;
   /** Available screen IDs for the navigate action picker. */
   screenIds?: string[];
+  /** Data sources attached to this screen (for the data-binding picker). */
+  dataSources?: SduiDataSource[];
+  /** Available provider schemas from the catalog API. */
+  providerSchemas?: DataProviderSchema[];
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +75,8 @@ export function ScreenBuilder({
   value,
   onChange,
   screenIds,
+  dataSources,
+  providerSchemas,
 }: ScreenBuilderProps) {
   const { state, dispatch, flatNodes, selectedComponent } =
     useScreenBuilder(value);
@@ -234,6 +245,8 @@ export function ScreenBuilder({
             component={selectedComponent}
             dispatch={dispatch}
             screenIds={screenIds}
+            dataSources={dataSources}
+            providerSchemas={providerSchemas}
           />
         </div>
       </div>

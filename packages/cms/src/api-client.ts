@@ -15,6 +15,7 @@ import type {
   ApiKeyRecord,
   ApiKeyInput,
   ApiKeyCreateResponse,
+  DataProviderSchema,
 } from "@workspace/sdui-schema";
 import { getToken } from "@/lib/auth";
 
@@ -223,6 +224,11 @@ export const apiClient = {
     return request<void>(`/api-keys/${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
+  },
+
+  /** Fetch the provider schema catalog for the data-binding picker. */
+  async getProviders(): Promise<DataProviderSchema[]> {
+    return request<DataProviderSchema[]>("/providers");
   },
 };
 

@@ -4,3 +4,4 @@ export * from "./feature-flags";
 export * from "./analytics";
 export * from "./ab-test";
 export * from "./api-contracts";
+export * from "./provider-schema";

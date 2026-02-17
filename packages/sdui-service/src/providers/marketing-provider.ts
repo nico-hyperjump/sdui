@@ -1,4 +1,33 @@
 import type { DataProviderFn } from "../services/data-provider-registry";
+import type { DataProviderSchema } from "@workspace/sdui-schema";
+
+/**
+ * Schema describing the data shape returned by the marketing provider.
+ * Returns an array of offer objects. Used by the CMS data-binding picker.
+ */
+export const marketingProviderSchema: DataProviderSchema = {
+  name: "marketing",
+  label: "Marketing Offers",
+  description:
+    "Personalized marketing offers and promotions for the current user segment.",
+  fields: [
+    { name: "id", label: "Offer ID", type: "string" },
+    { name: "title", label: "Title", type: "string" },
+    { name: "description", label: "Description", type: "string" },
+    { name: "price", label: "Price", type: "string" },
+    { name: "imageUrl", label: "Image URL", type: "string" },
+    { name: "badge", label: "Badge", type: "string" },
+  ],
+  params: [
+    {
+      name: "limit",
+      label: "Max Items",
+      type: "number",
+      required: false,
+      defaultValue: 3,
+    },
+  ],
+};
 
 /**
  * Default URL for the marketing source API.

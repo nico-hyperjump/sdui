@@ -1,5 +1,8 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { createMarketingProvider } from "./marketing-provider";
+import {
+  createMarketingProvider,
+  marketingProviderSchema,
+} from "./marketing-provider";
 
 describe("createMarketingProvider", () => {
   afterEach(() => {
@@ -68,5 +71,38 @@ describe("createMarketingProvider", () => {
     await expect(provider({}, { brand: "brand_a" })).rejects.toThrow(
       "Marketing API returned 500",
     );
+  });
+});
+
+describe("marketingProviderSchema", () => {
+  it("has the correct provider name", () => {
+    // Act & Assert
+    expect(marketingProviderSchema.name).toBe("marketing");
+  });
+
+  it("declares expected offer fields", () => {
+    // Act
+    const fieldNames = marketingProviderSchema.fields.map((f) => f.name);
+
+    // Assert
+    expect(fieldNames).toContain("id");
+    expect(fieldNames).toContain("title");
+    expect(fieldNames).toContain("description");
+    expect(fieldNames).toContain("price");
+    expect(fieldNames).toContain("imageUrl");
+    expect(fieldNames).toContain("badge");
+  });
+
+  it("declares the limit param", () => {
+    // Act
+    const limitParam = marketingProviderSchema.params?.find(
+      (p) => p.name === "limit",
+    );
+
+    // Assert
+    expect(limitParam).toBeDefined();
+    expect(limitParam?.type).toBe("number");
+    expect(limitParam?.required).toBe(false);
+    expect(limitParam?.defaultValue).toBe(3);
   });
 });

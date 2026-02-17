@@ -608,6 +608,9 @@ importers:
       '@workspace/sdui-schema':
         specifier: workspace:*
         version: link:../sdui-schema
+      '@workspace/sdui-service':
+        specifier: workspace:*
+        version: link:../sdui-service
       hono:
         specifier: ^4
         version: 4.11.4
