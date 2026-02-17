@@ -86,12 +86,11 @@ curl -X POST http://localhost:3001/api/cms/auth/login \
 ### Start the mobile app (optional)
 
 ```bash
-# Default (Brand A)
-pnpm --filter @workspace/mobile dev
-
-# Specific brand
 cd apps/mobile
-BRAND=brand_b npx expo start
+pnpm dev:a
+pnpm dev:b
+pnpm dev:c
+pnpm dev:demo
 ```
 
 </Step>
